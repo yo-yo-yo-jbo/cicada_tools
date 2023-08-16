@@ -1050,6 +1050,15 @@ d4618dee09a8425893dc7500b/
 ᚢᚾᚾᛖᛚᛝ-ᛏᚩ-ᚦᛖ-ᛋᚢᚱᚠᚪᚳᛖ./
 ᚹᛖ-ᛗᚢᛋᛏ-ᛋᚻᛖᛞ-ᚩᚢᚱ-ᚩᚹᚾ-ᚳ/
 ᛁᚱᚳᚢᛗᚠᛖᚱᛖᚾᚳᛖᛋ.ᚠᛁᚾᛞ-ᚦ/
-ᛖ-ᛞᛁᚢᛁᚾᛁᛏᚣ-ᚹᛁᚦᛁᚾ-ᚪᚾᛞ-ᛖᛗᛖᚱᚷᛖ./''', SimpleTranslation())
+ᛖ-ᛞᛁᚢᛁᚾᛁᛏᚣ-ᚹᛁᚦᛁᚾ-ᚪᚾᛞ-ᛖᛗᛖᚱᚷᛖ./''', SimpleTranslation()),
 
     ]
+    
+    @staticmethod
+    def get_unsolved_pages():
+        """
+            Gets all the unsolved pages.
+        """
+    
+        # Unsolved pages have unsolved translations
+        return [ page[0] for page in LiberPrimusPages.PAGES if isinstance(page[1], UnsolvedTranslation) ]

@@ -112,9 +112,18 @@ class Cicada(object):
         return s
 
     @staticmethod
-    def hill_decrypt(cipher, key, atbash=False, shifts=0, prime_substruction=False):
+    def magic_square_to_matrix(magic_square_string):
         """
-            Hill cipher decryption.
+            Turns a magic square to a matrix.
+        """
+
+        # Directly translate to a matrix
+        return sympy.Matrix([ [ int(k) for k in i.split(' ') if len(k) > 0 ] for i in magic_square_string.split('\n') if len(i) > 0 ])
+
+    @staticmethod
+    def hill_decrypt_to_runes(cipher, key, add_padding=False):
+        """
+            Hill cipher decryption from runes to runes.
         """
 
         # Validate key is square
@@ -125,7 +134,12 @@ class Cicada(object):
         # Get just the runes from ther ciphertext
         runes = [ Cicada.RUNES.find(c) for c in cipher if c in Cicada.RUNES ]
         if len(runes) % key_len != 0:
-            raise CicadaException('Ciphertext does not divide by key')
+            if add_padding:
+                padding = (key_len - (len(runes) % key_len)) * Cicada.RUNES[0]
+                cipher += padding
+                runes += [ 0 ] * len(padding)
+            else:
+                raise CicadaException('Ciphertext does not divide by key')
 
         # Inverse key for decryption
         inv_key = key.inv_mod(len(Cicada.RUNES))
@@ -147,9 +161,37 @@ class Cicada(object):
                 text += Cicada.RUNES[plaintext[plaintext_index]]
                 plaintext_index += 1
 
-        # Perform simple translation
-        plain = Cicada.runes_to_latin(text, atbash=atbash, shifts=shifts, prime_substruction=prime_substruction)
-        return plain + f'\n\nIOC={Cicada.ioc(text)}'
+        # Return the runes
+        return text
+
+    @staticmethod
+    def autokey_decrypt_to_runes(cipher, key):
+        """
+            Autokey cipher decryption from runes to runes.
+        """
+
+        # Build passphrase and extract only runes
+        runes = ''.join([ c for c in cipher if c in Cicada.RUNES ])
+        passphrase = key[:]
+
+        # Decrypt
+        plain = ''
+        for rune_index in range(len(runes)):
+            plain += Cicada.RUNES[(len(Cicada.RUNES) + Cicada.RUNES.find(runes[rune_index]) - Cicada.RUNES.find(passphrase[rune_index])) % len(Cicada.RUNES)]
+            passphrase += plain[-1]
+
+        # Replace encrypted runes with plaintext
+        plaintext_index = 0
+        text = ''
+        for c in cipher:
+            if c not in Cicada.RUNES:
+                text += c
+            else:
+                text += plain[plaintext_index]
+                plaintext_index += 1
+
+        # Return the runes
+        return text
 
     @staticmethod
     def vigenere_decrypt(cipher, key, interrupt_indexes=None):
@@ -241,59 +283,24 @@ MAGIC3='''
 18      320     130     199     366
 151     131     341     138     272'''
 
-# XOR between MAGIC1 and MAGIC3
-MAGIC4='''
-162  1429  109  405  849
-418  1003  804  88  1085
-656   665  882  665  656
-1085  88   804  1003  418
-849   405  109  1429  162'''
-
 def solve():
     """
         Wishful thinking.
     """
 
     # Get all unsolved pages
-    max_ioc = 0.0
-    pages = [ i[0] for i in LiberPrimus.LiberPrimusPages.PAGES if isinstance(i[1], LiberPrimus.UnsolvedTranslation) ]
-   
-    # Magic squares as keys
-    keys = []
-    for magic in (MAGIC1, MAGIC2, MAGIC3, MAGIC4):
-        key = sympy.Matrix([ [ int(k) for k in i.split(' ') if len(k) > 0 ] for i in magic.split('\n') if len(i) > 0 ])
-        keys.append(key)
+    pages = LiberPrimus.LiberPrimusPages.get_unsolved_pages()
 
     # Try to solve each page
     idx = 0
     for page in pages:
         idx += 1
-        rune_len = len([ i for i in page if i in Cicada.RUNES ])
-        if rune_len == 0:
-            continue
-        for key_index in range(len(keys)):
-            key = keys[key_index]
-            #for prime_substruction in (False, True):
-            #    for atbash in (False, True):
-            #        for shift in range(len(Cicada.RUNES)):
-            if True:
-                if True:
-                    if True:
-                        try:
-                            plain = Cicada.hill_decrypt(page, key) # , atbash=atbash, shifts=shift)
-                            ioc = float(plain.split('IOC=')[1])
-                            if ioc > max_ioc:
-                                max_ioc = ioc
-                            if ioc < 1.1:
-                                continue
-                            print(f'PAGE {idx}\tKEY {key_index}') #\tSHIFT {shift}\tATBASH {atbash}\n\n')
-                            print(plain)
-                            print(f'PREIOC={Cicada.ioc(page)}')
-                            Cicada.press_enter()
-                        except CicadaException:
-                            continue
-
-    print(max_ioc)
+        decrypted = Cicada.autokey_decrypt_to_runes(page, 'ᛁᚾᛋᛏᚪᚱ')
+        ioc = Cicada.ioc(decrypted)
+        decrypted = Cicada.runes_to_latin(decrypted)
+        print(f'PAGE {idx} {ioc}\n\n')
+        print(decrypted)
+        Cicada.press_enter()
 
 if __name__ == '__main__':
     solve()
