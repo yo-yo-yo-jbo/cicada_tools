@@ -1,5 +1,7 @@
 from CicadaUtils import Cicada
+
 import abc
+import sympy
 
 class Translation(abc.ABC):
     """
@@ -1053,7 +1055,7 @@ d4618dee09a8425893dc7500b/
 ᛖ-ᛞᛁᚢᛁᚾᛁᛏᚣ-ᚹᛁᚦᛁᚾ-ᚪᚾᛞ-ᛖᛗᛖᚱᚷᛖ./''', SimpleTranslation()),
 
     ]
-    
+
     @staticmethod
     def get_unsolved_pages():
         """
@@ -1062,3 +1064,44 @@ d4618dee09a8425893dc7500b/
     
         # Unsolved pages have unsolved translations
         return [ page[0] for page in LiberPrimusPages.PAGES if isinstance(page[1], UnsolvedTranslation) ]
+
+class PotentialSecrets(object):
+    """
+        Potential secrets and manipulations.
+    """
+
+    @staticmethod
+    def magic_square_to_matrix(magic_square_string):
+        """
+            Turns a magic square to a matrix.
+        """
+        
+        # Directly translate to a matrix
+        return sympy.Matrix([ [ int(k) for k in i.split(' ') if len(k) > 0 ] for i in magic_square_string.split('\n') if len(i) > 0 ])
+
+    # Magic squares extracted from LP
+    MAGIC_SQUARES = [ magic_square_to_matrix('''
+434     1311    312     278     966
+204     812     934     280     1071
+626     620     809     620     626
+1071    280     934     812     204
+966     278     312     1311    434'''), 
+
+                    magic_square_to_matrix('''
+7       375     236     190     27      17      181
+351     223     14      47      293     98      7
+456     232     121     114     72      23      15
+16      65      270     331     270     65      16
+15      23      72      114     121     232     456
+7       98      293     47      14      223     351
+181     17      27      190     236     375     7'''),
+
+                     magic_square_to_matrix('''
+272     138     341     131     151
+366     199     130     320     18
+226     245     91      245     226
+18      320     130     199     366
+151     131     341     138     272''')
+                     ]
+
+

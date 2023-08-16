@@ -112,15 +112,6 @@ class Cicada(object):
         return s
 
     @staticmethod
-    def magic_square_to_matrix(magic_square_string):
-        """
-            Turns a magic square to a matrix.
-        """
-
-        # Directly translate to a matrix
-        return sympy.Matrix([ [ int(k) for k in i.split(' ') if len(k) > 0 ] for i in magic_square_string.split('\n') if len(i) > 0 ])
-
-    @staticmethod
     def hill_decrypt_to_runes(cipher, key, add_padding=False, encrypt=False):
         """
             Hill cipher decryption from runes to runes.
@@ -260,29 +251,6 @@ def tests():
         print(f'PAGE {page_index} (ioc={Cicada.ioc(page[0])}):\n\n{plain}')
         Cicada.press_enter()
 
-MAGIC1='''
-434     1311    312     278     966
-204     812     934     280     1071
-626     620     809     620     626
-1071    280     934     812     204
-966     278     312     1311    434'''
-
-MAGIC2='''
-7       375     236     190     27      17      181
-351     223     14      47      293     98      7
-456     232     121     114     72      23      15
-16      65      270     331     270     65      16
-15      23      72      114     121     232     456
-7       98      293     47      14      223     351
-181     17      27      190     236     375     7'''
-
-MAGIC3='''
-272     138     341     131     151
-366     199     130     320     18
-226     245     91      245     226
-18      320     130     199     366
-151     131     341     138     272'''
-
 def solve():
     """
         Wishful thinking.
@@ -291,27 +259,16 @@ def solve():
     # Get all unsolved pages
     pages = LiberPrimus.LiberPrimusPages.get_unsolved_pages()
 
-    # Get all keys
-    keys = [ Cicada.magic_square_to_matrix(key) for key in (MAGIC1, MAGIC2, MAGIC3) ]
-    import itertools
-
     # Try to solve each page
     idx = 0
     for page in pages:
         idx += 1
         
         # Iterate all key options
-        for key_perm in itertools.permutations(keys):
-            x = page[:]
-            for key_option in range(8):
-                for i in range(3):
-                    if key_option & (1<<i) > 0:
-                        x = Cicada.hill_decrypt_to_runes(x, key_perm[i], add_padding=True)
-            ioc = Cicada.ioc(x)
-            if ioc < 1.2:
-                continue
-            decrypted = Cicada.runes_to_latin(x)
-            print(f'PAGE {idx} {ioc}\n\n')
+        for key in LiberPrimus.PotentialSecrets.MAGIC_SQUARES:
+            decrypted = Cicada.hill_decrypt_to_runes(page, key, add_padding=True)
+            decrypted = Cicada.runes_to_latin(decrypted)
+            print(f'PAGE {idx}\n\n')
             print(decrypted)
             Cicada.press_enter()
 

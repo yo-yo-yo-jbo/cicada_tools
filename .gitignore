@@ -1,0 +1,7 @@
+# Ignore python cache
+__pycache__
+
+# Ignore VIM swap files
+*.swp
+
+
