@@ -34,7 +34,7 @@ Contains a class called `Cicada` which does a lot of basic encryption, decryptio
 Assuming we wish to use "INSTAR" as a vigenere cipher, we could code the following:
 
 ```python
-def solve()P:
+def solve():
     """
         Wishful thinking.
     """
