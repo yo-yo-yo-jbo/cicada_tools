@@ -121,7 +121,7 @@ class Cicada(object):
         return sympy.Matrix([ [ int(k) for k in i.split(' ') if len(k) > 0 ] for i in magic_square_string.split('\n') if len(i) > 0 ])
 
     @staticmethod
-    def hill_decrypt_to_runes(cipher, key, add_padding=False):
+    def hill_decrypt_to_runes(cipher, key, add_padding=False, encrypt=False):
         """
             Hill cipher decryption from runes to runes.
         """
@@ -142,7 +142,7 @@ class Cicada(object):
                 raise CicadaException('Ciphertext does not divide by key')
 
         # Inverse key for decryption
-        inv_key = key.inv_mod(len(Cicada.RUNES))
+        inv_key = key if encrypt else key.inv_mod(len(Cicada.RUNES))
 
         # Decrypt
         plaintext = []
@@ -291,16 +291,29 @@ def solve():
     # Get all unsolved pages
     pages = LiberPrimus.LiberPrimusPages.get_unsolved_pages()
 
+    # Get all keys
+    keys = [ Cicada.magic_square_to_matrix(key) for key in (MAGIC1, MAGIC2, MAGIC3) ]
+    import itertools
+
     # Try to solve each page
     idx = 0
     for page in pages:
         idx += 1
-        decrypted = Cicada.autokey_decrypt_to_runes(page, 'ᛁᚾᛋᛏᚪᚱ')
-        ioc = Cicada.ioc(decrypted)
-        decrypted = Cicada.runes_to_latin(decrypted)
-        print(f'PAGE {idx} {ioc}\n\n')
-        print(decrypted)
-        Cicada.press_enter()
+        
+        # Iterate all key options
+        for key_perm in itertools.permutations(keys):
+            x = page[:]
+            for key_option in range(8):
+                for i in range(3):
+                    if key_option & (1<<i) > 0:
+                        x = Cicada.hill_decrypt_to_runes(x, key_perm[i], add_padding=True)
+            ioc = Cicada.ioc(x)
+            if ioc < 1.2:
+                continue
+            decrypted = Cicada.runes_to_latin(x)
+            print(f'PAGE {idx} {ioc}\n\n')
+            print(decrypted)
+            Cicada.press_enter()
 
 if __name__ == '__main__':
     solve()
