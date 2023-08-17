@@ -265,10 +265,15 @@ def solve():
         idx += 1
         
         # Iterate all key options
+        key_index = -1
         for key in LiberPrimus.PotentialSecrets.MAGIC_SQUARES:
-            decrypted = Cicada.hill_decrypt_to_runes(page, key, add_padding=True)
+            key_index += 1
+            decrypted = Cicada.hill_decrypt_to_runes(page, key.transpose(), add_padding=True)
+            ioc = Cicada.ioc(decrypted)
+            if ioc < 1.2:
+                continue
             decrypted = Cicada.runes_to_latin(decrypted)
-            print(f'PAGE {idx}\n\n')
+            print(f'PAGE {idx} {key_index}\n\n')
             print(decrypted)
             Cicada.press_enter()
 
