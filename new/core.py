@@ -18,9 +18,6 @@ class ProcessedText(object):
         # Save processes runes
         self._processed_runes = [ c for c in self._orig if c in RUNES ]
 
-        # Acts as a cache to the rune text
-        self._rune_text_cache = None
-
         # Currently not marked as unsolved
         self._is_unsolved = False
 
@@ -45,6 +42,14 @@ class ProcessedText(object):
         # Mark
         self._is_unsolved = True
 
+    def is_unsolved(self):
+        """
+            Indicate if text is still unsolved.
+        """
+
+        # Indicate
+        return self._is_unsolved
+
     def get_runes(self):
         """
             Gets the runes.
@@ -62,34 +67,35 @@ class ProcessedText(object):
         assert len(new_runes) == len(self._processed_runes), Exception(f'Length mismatch between new runes ({len(new_runes)}) and old runes ({len(self._processed_runes)})')
         self._processed_runes = new_runes[:]
 
-        # Invalidate cache
-        self._rune_text_cache = None
+    def get_rune_words(self):
+        """
+            Get Runic words.
+        """
 
-    def get_rune_text(self):
+        # Get the Runic text
+        text = self.get_rune_text().replace('.', ' ')
+        return ''.join([ c for c in text if c in RUNES or c == ' ' ]).split(' ')
+
+    def get_rune_text(self, punct_translation=True):
         """
             Gets the rune text.
         """
 
-        # Return from cache if possible
-        if self._rune_text_cache is None:
-
-            # Replace runes from the original with the newly processed runes
-            result = ''
-            rune_index = 0
-            for c in self._orig:
-                if c in RUNES:
-                    result += self._processed_runes[rune_index]
-                    rune_index += 1
-                elif c in PUNCT:
+        # Replace runes from the original with the newly processed runes
+        result = ''
+        rune_index = 0
+        for c in self._orig:
+            if c in RUNES:
+                result += self._processed_runes[rune_index]
+                rune_index += 1
+            else:
+                if punct_translation and c in PUNCT:
                     result += PUNCT[c]
                 else:
                     result += c
 
-            # Save to cache
-            self._rune_text_cache = result
-
         # Return result
-        return self._rune_text_cache
+        return result
 
     def to_latin(self):
         """
