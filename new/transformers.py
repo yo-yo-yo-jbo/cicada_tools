@@ -88,15 +88,18 @@ class VigenereTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result)
 
-class TotientPrimeSubstructionTransformer(TransformerBase):
+class TotientPrimeTransformer(TransformerBase):
     """
-        Substructs the totient of primes (i.e. p-1) from each index.
+        Substructs or adds the totient of primes (i.e. p-1) from each index.
     """
 
-    def __init__(self, interrupt_indices=set()):
+    def __init__(self, add=True, interrupt_indices=set()):
         """
             Creates an instance..
         """
+
+        # Save the action
+        self._add = add
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -129,7 +132,10 @@ class TotientPrimeSubstructionTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 new_index = RUNES.index(rune)
             else:
-                new_index = (RUNES.index(rune) - (curr_prime - 1)) % len(RUNES)
+                val = curr_prime - 1
+                if not self._add:
+                    val *= -1
+                new_index = (RUNES.index(rune) + val) % len(RUNES)
                 curr_prime = self.__class__.find_next_prime(curr_prime)
             result.append(RUNES[new_index])
 

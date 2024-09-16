@@ -67,14 +67,18 @@ class ProcessedText(object):
         assert len(new_runes) == len(self._processed_runes), Exception(f'Length mismatch between new runes ({len(new_runes)}) and old runes ({len(self._processed_runes)})')
         self._processed_runes = new_runes[:]
 
-    def get_rune_words(self):
+    def get_rune_words(self, remove_periods=True):
         """
             Get Runic words.
         """
 
         # Get the Runic text
-        text = self.get_rune_text().replace('.', ' ')
-        return ''.join([ c for c in text if c in RUNES or c == ' ' ]).split(' ')
+        text = self.get_rune_text()
+        if remove_periods:
+            text = text.replace('.', ' ')
+        else:
+            text = text.replace('.', ' . ')
+        return [ word for word in ''.join([ c for c in text if c in RUNES or c in (' ', '.') ]).split(' ') if len(word) > 0 ]
 
     def get_rune_text(self, punct_translation=True):
         """

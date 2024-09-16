@@ -963,7 +963,7 @@ d4618dee09a8425893dc7500b/
 4568926a49fb4f45132c2a8b4/
 &
 ᚳᛞ-ᚠᚾ-ᛡᛖ-ᚠᚾᚳᛝ-ᚱᚠ-ᚫᛁᚱᛞᛖ-ᛋᚣᛄᛠᚢ/
-ᛝᚹ-ᛉᚩ-ᛗᛠᚹᚠ-ᚱᚷᛡ-ᛝᚱᛒ-ᚫᚾᚢᛋ./''', (TotientPrimeSubstructionTransformer(interrupt_indices={ 56 }),)),
+ᛝᚹ-ᛉᚩ-ᛗᛠᚹᚠ-ᚱᚷᛡ-ᛝᚱᛒ-ᚫᚾᚢᛋ./''', (TotientPrimeTransformer(add=False, interrupt_indices={ 56 }),)),
 
     ('''
 ᛈᚪᚱᚪᛒᛚᛖ.ᛚᛁᚳᛖ-ᚦᛖ-ᛁᚾᛋᛏᚪᚱ-ᛏ/
