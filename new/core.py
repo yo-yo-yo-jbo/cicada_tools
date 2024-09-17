@@ -80,6 +80,22 @@ class ProcessedText(object):
             text = text.replace('.', ' . ')
         return [ word for word in ''.join([ c for c in text if c in RUNES or c in (' ', '.') ]).split(' ') if len(word) > 0 ]
 
+    def get_first_non_wordlist_word_index(self, wordlist):
+        """
+            Finds the first Runic word that is not in the given wordlist.
+        """
+
+        # Iterate all words
+        word_index = -1
+        for word in self.get_rune_words():
+            word_index += 1
+            if word not in wordlist:
+                return word_index
+        
+        # Indicate all words are in the wordlist by just returning the number of words plus one
+        return word_index + 1
+
+
     def get_rune_text(self, punct_translation=True):
         """
             Gets the rune text.

@@ -3,8 +3,57 @@ from pages import PAGES
 from core import RUNES
 from core import LATIN
 from core import ProcessedText
+from transformers import *
 import os
 import itertools
+import sys
+
+def is_square_free(factors):
+    """
+        This functions takes a list of prime factors as input.
+        Returns True if the factors are square free.
+    """
+
+    # Validates unique factors
+    for i in factors:
+        if factors.count(i) > 1:
+            return False
+    return True
+
+def prime_factors(n):
+    """
+        Returns prime factors of n as a list.
+    """
+
+    # Tries all factors
+    i = 2
+    factors = []
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
+    return factors
+
+def mobius_function(n):
+    """
+        Defines Mobius function.
+    """
+
+    # Gets the factors
+    factors = prime_factors(n)
+
+    # Acts accordingly
+    if is_square_free(factors):
+        if len(factors) % 2 == 0:
+            return 1
+        elif len(factors) % 2 != 0:
+            return -1
+    else:
+        return 0
 
 def press_enter():
     """
@@ -193,7 +242,108 @@ def auto_crib_get_keys():
             # Print for now
             print('KEY: ' + indices_to_latin(base_key_indices))
 
+def bruteforce_autokey():
+
+    # Get the wordlist
+    results = []
+    wordlist = get_rune_wordlist()
+
+    # Extend wordlist to include rune "F" too for each word
+    wordlist += [ w.replace(w[0], RUNES[0]) for w in wordlist ]
+
+    # Get unresolved pages
+    unsolved_pages = get_unsolved_pages()
+
+    # Threshold
+    word_match_threshold = 1
+
+    # Iterate pages
+    page_index = 0
+    for page in unsolved_pages:
+
+        # Iterate keys
+        page_index += 1
+        key_index = 0
+        for keys in itertools.permutations(wordlist, 3):
+
+            # Iterate mode
+            key_index += 1
+            print(f'Page {page_index} / {len(unsolved_pages)} ; Key {key_index} / {len(wordlist) * (len(wordlist) - 1) * (len(wordlist) - 2)}')
+            for mode in [ AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT ]:
+                
+                # Build transformer
+                autokey_transformer = AutokeyMobiusTransformer(keys=keys, mode=mode)
+                tot_prime_add_transofmer = TotientPrimeTransformer(add=True)
+                tot_prime_sub_transofmer = TotientPrimeTransformer(add=False)
+                atbash_transformer = AtbashTransformer()
+
+                # Just autokey
+                pt = ProcessedText(page)
+                autokey_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+                atbash_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+ 
+                # Autokey with tot-prime add
+                pt = ProcessedText(page)
+                autokey_transformer.transform(pt)
+                tot_prime_add_transofmer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+                atbash_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+ 
+                # Autokey with tot-prime sub
+                pt = ProcessedText(page)
+                autokey_transformer.transform(pt)
+                tot_prime_sub_transofmer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+                atbash_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+ 
+                # Tot-prime add with Autokey
+                pt = ProcessedText(page)
+                tot_prime_add_transofmer.transform(pt)
+                autokey_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+                atbash_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+ 
+                # Tot-prime sub with Autokey
+                pt = ProcessedText(page)
+                tot_prime_sub_transofmer.transform(pt)
+                autokey_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+                atbash_transformer.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= word_match_threshold:
+                    results.append((word_matches, pt.to_latin()))
+ 
+    # Sort all results
+    results.sort()
+    with open('dbg.txt', 'w') as fp:
+        for r in results:
+            fp.write(f'word matches: {r[0]}\n{r[1]}\n\n=================\n\n')
+
 if __name__ == '__main__':
-    show_unsolved_pages_potential_cribs()
+    #show_unsolved_pages_potential_cribs()
     #show_all_solved_words()
     #auto_crib_get_keys()
+    bruteforce_autokey()
