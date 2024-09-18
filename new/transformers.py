@@ -241,7 +241,7 @@ class VigenereTransformer(TransformerBase):
 
     def transform(self, processed_text):
         """
-            Transforms runes.
+            transforms runes.
         """
 
         # Performs Vigenere decryption
@@ -327,3 +327,24 @@ class UnsolvedTransformer(TransformerBase):
         # Sets as unsolved
         processed_text.set_unsolved()
 
+class TransformerSequence(TransformerBase):
+    """
+        Builds a transformer sequence.
+    """
+
+    def __init__(self, *transformers):
+        """
+            Creates an instance.
+        """
+
+        # Save all transformers
+        self._transformers = transformers
+
+    def transform(self, processed_text):
+        """
+            transforms runes.
+        """
+
+        # Runs all transformers sequentially
+        for transformer in self._transformers:
+            transformer.transform(processed_text)

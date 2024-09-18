@@ -8,53 +8,6 @@ import os
 import itertools
 import sys
 
-def is_square_free(factors):
-    """
-        This functions takes a list of prime factors as input.
-        Returns True if the factors are square free.
-    """
-
-    # Validates unique factors
-    for i in factors:
-        if factors.count(i) > 1:
-            return False
-    return True
-
-def prime_factors(n):
-    """
-        Returns prime factors of n as a list.
-    """
-
-    # Tries all factors
-    i = 2
-    factors = []
-    while i * i <= n:
-        if n % i:
-            i += 1
-        else:
-            n //= i
-            factors.append(i)
-    if n > 1:
-        factors.append(n)
-    return factors
-
-def mobius_function(n):
-    """
-        Defines Mobius function.
-    """
-
-    # Gets the factors
-    factors = prime_factors(n)
-
-    # Acts accordingly
-    if is_square_free(factors):
-        if len(factors) % 2 == 0:
-            return 1
-        elif len(factors) % 2 != 0:
-            return -1
-    else:
-        return 0
-
 def press_enter():
     """
         Waits for an ENTER keypress.
@@ -83,8 +36,7 @@ def show_all_pages():
         rune_ioc = processed_text.get_rune_ioc()
 
         # Decrypt
-        for transformer in page[1]:
-           transformer.transform(processed_text)
+        page[1].transform(processed_text)
 
         # Present and wait for input
         print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
@@ -102,8 +54,7 @@ def get_unsolved_pages():
 
         # Process all text
         processed_text = ProcessedText(page[0])
-        for transformer in page[1]:
-            transformer.transform(processed_text)
+        page[1].transform(processed_text)
 
         # Add to result if page is unsolved
         if processed_text.is_unsolved():
@@ -245,11 +196,11 @@ def auto_crib_get_keys():
 def bruteforce_autokey():
 
     # Get the wordlist
-    results = []
     wordlist = get_rune_wordlist()
+    potential_keys = [ 'ᚳᚩᚾᛋᚢᛗᛈᛏᛡᚾ', 'ᛈᚱᛖᛋᛖᚱᚢᚪᛏᛡᚾ', 'ᚪᛞᚻᛖᚱᛖᚾᚳᛖ' ]
 
-    # Extend wordlist to include rune "F" too for each word
-    wordlist += [ w.replace(w[0], RUNES[0]) for w in wordlist ]
+    # Extend key list to include rune "F" too for each word
+    potential_keys += [ k.replace(k[0], RUNES[0]) for k in potential_keys ]
 
     # Get unresolved pages
     unsolved_pages = get_unsolved_pages()
@@ -261,21 +212,31 @@ def bruteforce_autokey():
     page_index = 0
     for page in unsolved_pages:
 
+        # Store results
+        results = []
+
         # Iterate keys
         page_index += 1
         key_index = 0
-        for keys in itertools.permutations(wordlist, 3):
+        for keys in itertools.permutations(potential_keys, 3):
 
-            # Iterate mode
+            # Print stats
             key_index += 1
-            print(f'Page {page_index} / {len(unsolved_pages)} ; Key {key_index} / {len(wordlist) * (len(wordlist) - 1) * (len(wordlist) - 2)}')
+            print(f'Page {page_index} / {len(unsolved_pages)} ; Key {key_index} / {len(potential_keys) * (len(potential_keys) - 1) * (len(potential_keys) - 2)}')
+
+            # Build transformer options
+            transformers = []
             for mode in [ AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT ]:
-                
-                # Build transformer
-                autokey_transformer = AutokeyMobiusTransformer(keys=keys, mode=mode)
-                tot_prime_add_transofmer = TotientPrimeTransformer(add=True)
-                tot_prime_sub_transofmer = TotientPrimeTransformer(add=False)
-                atbash_transformer = AtbashTransformer()
+   
+                # Build transformers
+                transformers = []
+                transformers.append( [ AutokeyMobiusTransformer(keys=keys, mode=mode) ])
+                transformers.append(TotientPrimeTransformer(add=True))
+                tranaformers.append(TotientPrimeTransformer(add=False))
+                transformers.append(AtbashTransformer())
+                shift_by_one_transformer = ShiftTransformer(shift = 1)
+
+
 
                 # Just autokey
                 pt = ProcessedText(page)
@@ -336,14 +297,15 @@ def bruteforce_autokey():
                 if word_matches >= word_match_threshold:
                     results.append((word_matches, pt.to_latin()))
  
-    # Sort all results
-    results.sort()
-    with open('dbg.txt', 'w') as fp:
-        for r in results:
-            fp.write(f'word matches: {r[0]}\n{r[1]}\n\n=================\n\n')
+        # Sort all results
+        results.sort()
+        with open(f'dbg_{page_index}.txt', 'w') as fp:
+            for r in results:
+                fp.write(f'word matches: {r[0]}\n{r[1]}\n\n=================\n\n')
 
 if __name__ == '__main__':
     #show_unsolved_pages_potential_cribs()
     #show_all_solved_words()
     #auto_crib_get_keys()
     bruteforce_autokey()
+
