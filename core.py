@@ -16,6 +16,7 @@ def latin_to_runes(latin):
 
     # Certain Cicada3301 quirks
     s = s.replace('ING', 'NG')      # "BENG"
+    s = s.replace('ION', 'IAN')     # "INSTRVCTIAN"
     s = s.replace('QU', 'CW')       # "CWESTION"
     s = s.replace('K', 'C')         # "BOOC"
     s = s.replace('U', 'V')         # "OVR"
