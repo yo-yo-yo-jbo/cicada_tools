@@ -8,6 +8,43 @@ from core import ProcessedText
 # Autokey modes
 AutokeyMode = Enum('AutokeyMode', [ 'PLAINTEXT', 'CIPHERTEXT', 'ALT_START_PLAINTEXT', 'ALT_START_CIPHERTEXT' ])
 
+class MathUtils(object):
+    """
+        Math utilities.
+    """
+
+    @staticmethod
+    def find_next_prime(prev_prime):
+        """
+            Finds the next prime number.
+        """
+
+        # Just iterate
+        if prev_prime == 2:
+            return 3
+        candidate = prev_prime + 2
+        while not sympy.isprime(candidate):
+            candidate += 2
+        return candidate
+
+    @staticmethod
+    def mobius(n):
+        """
+            Defines Mobius function.
+        """
+
+        # Use sympy
+        return sympy.mobius(n)
+
+    @staticmethod
+    def totient(n):
+        """
+            Defines the Totient function.
+        """
+
+        # Use sympy
+        return sympy.totient(n)
+
 class TransformerBase(ABC):
     """
         Base class for transformers.
@@ -110,65 +147,6 @@ class AutokeyTransformer(TransformerBase):
 
 class AutokeyMobiusTransformer(TransformerBase):
 
-    # Cache of results
-    MOBIUS_CACHE = {}
-
-    @staticmethod
-    def is_square_free(factors):
-        """
-            This functions takes a list of prime factors as input.
-            Returns True if the factors are square free.
-        """
-
-        # Validates unique factors
-        for i in factors:
-            if factors.count(i) > 1:
-                return False
-        return True
-
-    @staticmethod
-    def prime_factors(n):
-        """
-            Returns prime factors of n as a list.
-        """
-
-        # Tries all factors
-        i = 2
-        factors = []
-        while i * i <= n:
-            if n % i:
-                i += 1
-            else:
-                n //= i
-                factors.append(i)
-        if n > 1:
-            factors.append(n)
-        return factors
-
-    @classmethod
-    def mobius_function(cls, n):
-        """
-            Defines Mobius function.
-        """
-
-        # Check for cache
-        if n not in cls.MOBIUS_CACHE:
-
-            # Gets the factors
-            factors = cls.prime_factors(n)
-
-            # Acts accordingly
-            if cls.is_square_free(factors):
-                if len(factors) % 2 == 0:
-                    cls.MOBIUS_CACHE[n] = 1
-                elif len(factors) % 2 != 0:
-                    cls.MOBIUS_CACHE[n] = -1
-            else:
-                cls.MOBIUS_CACHE[n] =  0
-
-        # Return the result
-        return cls.MOBIUS_CACHE[n]
-
     def __init__(self, keys, mode, interrupt_indices=set()):
         """
             Creates an instance.
@@ -197,7 +175,7 @@ class AutokeyMobiusTransformer(TransformerBase):
             rune_index += 1
 
             # Append to the right ciphertext chunk and map Mobius function from { -1, 0, 1 } to { 0, 1, 2 }
-            fixed_index = self.__class__.mobius_function(rune_index) + 1
+            fixed_index = MathUtils.mobius(rune_index) + 1
             rune_chunks[fixed_index] += rune
 
             # Save interrupt indices
@@ -217,7 +195,7 @@ class AutokeyMobiusTransformer(TransformerBase):
         rune_index = 0
         for rune in processed_text.get_runes():
             rune_index += 1
-            fixed_index = self.__class__.mobius_function(rune_index) + 1
+            fixed_index = MathUtils.mobius(rune_index) + 1
             results.append(pt_runes[fixed_index].pop(0)) 
         processed_text.set_runes(results)
 
@@ -267,7 +245,7 @@ class TotientPrimeTransformer(TransformerBase):
 
     def __init__(self, add=True, interrupt_indices=set()):
         """
-            Creates an instance..
+            Creates an instance.
         """
 
         # Save the action
@@ -276,26 +254,12 @@ class TotientPrimeTransformer(TransformerBase):
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
 
-    @staticmethod
-    def find_next_prime(prev_prime):
-        """
-            Finds the next prime number.
-        """
-
-        # Just iterate
-        if prev_prime == 2:
-            return 3
-        candidate = prev_prime + 2
-        while not sympy.isprime(candidate):
-            candidate += 2
-        return candidate
-
     def transform(self, processed_text):
         """
             Transforms runes.
         """
 
-        # Substract the totient of each prime
+        # Substract or adds the totient of each prime
         result = []
         curr_prime = 2
         rune_index = -1
@@ -304,11 +268,56 @@ class TotientPrimeTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 new_index = RUNES.index(rune)
             else:
-                val = curr_prime - 1
+                val = MathUtils.totient(curr_prime)
                 if not self._add:
                     val *= -1
                 new_index = (RUNES.index(rune) + val) % len(RUNES)
-                curr_prime = self.__class__.find_next_prime(curr_prime)
+                curr_prime = MathUtils.find_next_prime(curr_prime)
+            result.append(RUNES[new_index])
+
+        # Set the result
+        processed_text.set_runes(result)
+
+class MobiusTotientPrimeTransformer(TransformerBase):
+    """
+        Substructs or adds to Mobius function of the totient of primes (i.e. p-1), times a either the totient or the prime, from each index.
+    """
+
+    def __init__(self, add=True, use_prime_as_base=False, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Save the action
+        self._add = add
+        self._use_prime_as_base = use_prime_as_base
+
+        # Save the interrupters
+        self._interrupt_indices = interrupt_indices
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Substract or adds the value of each prime
+        result = []
+        curr_prime = 2
+        rune_index = -1
+        for rune in processed_text.get_runes():
+            rune_index += 1
+            if rune_index in self._interrupt_indices:
+                new_index = RUNES.index(rune)
+            else:
+                tot = MathUtils.totient(curr_prime)
+                if self._use_prime_as_base:
+                    val = (MathUtils.mobius(tot) * curr_prime) % len(RUNES)
+                else:
+                    val = (MathUtils.mobius(tot) * tot) % len(RUNES)
+                if not self._add:
+                    val *= -1
+                new_index = (RUNES.index(rune) + val) % len(RUNES)
+                curr_prime = MathUtils.find_next_prime(curr_prime)
             result.append(RUNES[new_index])
 
         # Set the result
