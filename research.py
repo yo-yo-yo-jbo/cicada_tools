@@ -42,7 +42,7 @@ def print_solved_text(text):
 
     # Color digits and lowercase
     s = text
-    for c in string.digits:
+    for c in string.digits + string.ascii_lowercase:
         s = s.replace(c, f'[!!!BLUE!!!]{c}[!!!RESET_COLORS!!!]')
     s = s.replace('[!!!RESET_COLORS!!!]', RESET_COLORS).replace('[!!!BLUE!!!]', BLUE)
 
