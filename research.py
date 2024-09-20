@@ -9,6 +9,19 @@ import os
 import itertools
 import sys
 from tqdm import tqdm
+import string
+
+# Colors
+RED, GREEN, BLUE, RESET_COLORS = '', '', '', ''
+try:
+    import colorama
+    colorama.init()
+    RED = colorama.Fore.RED + colorama.Style.BRIGHT
+    GREEN = colorama.Fore.GREEN + colorama.Style.BRIGHT
+    BLUE = colorama.Fore.BLUE + colorama.Style.BRIGHT
+    RESET_COLORS = colorama.Style.RESET_ALL
+except Exception:
+    pass
 
 def press_enter():
     """
@@ -21,6 +34,28 @@ def press_enter():
         os.system('cls')
     else:
         os.system('clear')
+
+def print_solved_text(text):
+    """
+        Prettifies and prints solved text.
+    """
+
+    # Color digits and lowercase
+    s = text
+    for c in string.digits:
+        s = s.replace(c, f'[!!!BLUE!!!]{c}[!!!RESET_COLORS!!!]')
+    s = s.replace('[!!!RESET_COLORS!!!]', RESET_COLORS).replace('[!!!BLUE!!!]', BLUE)
+
+    # Color runes
+    for rune in RUNES:
+        s = s.replace(rune, f'{RED}{rune}{RESET_COLORS}')
+    
+    # Color uppercase
+    for letter in string.ascii_uppercase:
+        s = s.replace(letter, f'{GREEN}{letter}{RESET_COLORS}')
+
+    # Print
+    print(s)
 
 def show_all_pages():
     """
@@ -41,7 +76,8 @@ def show_all_pages():
         page[1].transform(processed_text)
 
         # Present and wait for input
-        print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
+        print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n')
+        print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
         press_enter()
         page_index += 1
 
@@ -405,24 +441,27 @@ class Attempts(object):
 
             # Iterate all number of totient operations
             for tot_call_count in range(1, 3):
-                
-                # Try reversing and then run totient index manipulation
-                pt = ProcessedText(page)
-                ReverseTransformer().transform(pt)
-                TotientPrimeTransformer(tot_calls=tot_call_count).transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+               
+                # Try adding or substructing
+                for add_option in (False, True):
 
-                # Try without reversing
-                pt = ProcessedText(page)
-                TotientPrimeTransformer(tot_calls=tot_call_count).transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                    # Try reversing and then run totient index manipulation
+                    pt = ProcessedText(page)
+                    ReverseTransformer().transform(pt)
+                    TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
-                # Reverse after totient index manipulation
-                ReverseTransformer().transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                    # Try without reversing
+                    pt = ProcessedText(page)
+                    TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                    # Reverse after totient index manipulation
+                    ReverseTransformer().transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
     @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=4, ioc_threshold=1.4):
