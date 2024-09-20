@@ -6,7 +6,7 @@ from enum import Enum
 from core import ProcessedText
 
 # Autokey modes
-AutokeyMode = Enum('AutokeyMode', [ 'PLAINTEXT', 'CIPHERTEXT', 'ALT_START_PLAINTEXT', 'ALT_START_CIPHERTEXT' ])
+AutokeyMode = Enum('AutokeyMode', [ 'PLAINTEXT', 'CIPHERTEXT', 'ALT_START_PLAINTEXT', 'ALT_START_CIPHERTEXT', 'ALT_MOBIUS_START_PLAINTEXT', 'ALT_MOBIUS_START_CIPHERTEXT' ])
 
 class MathUtils(object):
     """
@@ -117,18 +117,22 @@ class AutokeyTransformer(TransformerBase):
         """
 
         # Save state based on mode
-        extend_to_plaintext = self._mode in (AutokeyMode.PLAINTEXT, AutokeyMode.ALT_START_PLAINTEXT)
+        extend_to_plaintext = self._mode in (AutokeyMode.PLAINTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT)
 
         # Performs an autokey decryption
         result = []
         key_index = 0
         rune_index = -1
         ciphertext_extension_index = 0
+        mob_value = None
         running_key_indices = self._key_indices[:]
         ciphertext = processed_text.get_runes()
         for rune in ciphertext:
             rune_index += 1
-            if rune_index in self._interrupt_indices:
+            if self._mode in (AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
+                mob_value = MathUtils.mobius(rune_index + 1)
+                extend_to_plaintext = (AutokeyMode.ALT_MOBIUS_START_PLAINTEXT and mob_value == 1) or (AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT and mob_value == 0)
+            if rune_index in self._interrupt_indices or mob_value == 0:
                 new_index = RUNES.index(rune)
             else:
                 new_index = (RUNES.index(rune) - running_key_indices[key_index]) % len(RUNES)

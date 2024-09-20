@@ -422,5 +422,52 @@ class Attempts(object):
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
+    @staticmethod
+    def autokey_bruteforce_with_reversing(word_threshold=4, ioc_threshold=1.4):
+        """
+            Attempts Autokey bruteforcing with or without reversing the text of each page.
+            Uses keys derived from all decrypted pages, with and without replacing all occurrences of first character with "F".
+            Uses all supported modes of Autokey: plaintext, cipehrtext or alternating (starting from either plaintext or ciphertext, or using the Mobius function).
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
+
+        # Build potential keys
+        keys = get_rune_wordlist()
+        keys += [ k.replace(k[0], RUNES[0]) for k in keys ]
+        keys = set(keys)
+
+        # Iterate all pages
+        page_index = -1
+        for page in get_unsolved_pages():
+
+            # Increase page index
+            page_index += 1
+
+            # Iterate all keys
+            for key in keys:
+               
+                # Iterate all modes
+                for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
+
+                    # Apply Autokey
+                    pt = ProcessedText(page)
+                    AutokeyTransformer(key=key, mode=mode).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                    # Reverse
+                    ReverseTransformer().transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                    # Start from reversing and then apply Autokey
+                    pt = ProcessedText(page)
+                    ReverseTransformer().transform(pt)
+                    AutokeyTransformer(key=key, mode=mode).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
 if __name__ == '__main__':
-    Attempts.double_tot_index_with_reversing()
+    Attempts.autokey_bruteforce_with_reversing()
