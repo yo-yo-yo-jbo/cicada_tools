@@ -249,8 +249,9 @@ class TotientPrimeTransformer(TransformerBase):
             Creates an instance.
         """
 
-        # Save the action
+        # Save the action and the number of totient calls
         self._add = add
+        self._tot_calls = tot_calls
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -270,7 +271,7 @@ class TotientPrimeTransformer(TransformerBase):
                 new_index = RUNES.index(rune)
             else:
                 val = curr_prime
-                for i in range(tot_calls):
+                for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1

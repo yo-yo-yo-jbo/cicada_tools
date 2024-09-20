@@ -64,9 +64,10 @@ def get_unsolved_pages():
     # Return all unsolved pages
     return result
 
-def get_rune_wordlist():
+def get_rune_wordlist(use_dictionary=False):
     """
         Get a Runic wordlist from all solved pages dynamically.
+        Can also extend to an English wordlist.
     """
 
     # Try to decrypt all pages
@@ -86,6 +87,13 @@ def get_rune_wordlist():
             if len(word) == 0:
                 continue
             result.add(word)
+
+    # Optionally extend to use a wordlist
+    with open('english_wordlist.txt', 'r') as fp:
+        for word in fp.read().split('\n'):
+            runic = latin_to_runes(word)
+            if len(runic) > 0:
+                result.add(runic)
 
     # Return wordlist sorted by word length descending
     return sorted(result, key=len)[::-1]
@@ -371,38 +379,48 @@ def bruteforce_autokey_mobius():
             for r in results:
                 fp.write(f'word matches: {r[0]}\n{r[1]}\n\n=================\n\n')
 
-if __name__ == '__main__':
-    #show_unsolved_pages_potential_cribs()
-    #show_all_solved_words()
-    #auto_crib_get_keys()
-    #bruteforce_autokey()
-    #bruteforce_autokey(3)
+class Attempts(object):
+    """
+        Attempts made.
+    """
 
-    # Get potential keys
-    print('Building wordlist')
-    with open('wordlist/words.txt', 'r') as fp:
-        potential_keys = [ k.upper() for k in fp.read().split('\n') ]
-    potential_keys = [ ''.join([ i for i in k if i.isupper() ]) for k in potential_keys ]
-    potential_keys = [ k for k in potential_keys if len(k) > 0 ] 
+    @staticmethod
+    def double_tot_index_with_reversing(word_threshold=4, ioc_threshold=1.4):
+        """
+            Adds or substructs either tot(primes) or tot(tot(primes)), on both normal text as well as reversed text.
+            If the number of prefixed words are above the given threshold or the IOC is above the given threshold, print result.
+        """
 
-    # Turn all potential keys to runes
-    potential_keys = [ latin_to_runes(k) for k in potential_keys ]
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
 
-    # Get the wordlist and extend it to also include potential keys
-    wordlist = get_rune_wordlist()
-    wordlist += potential_keys
+        # Iterate all pages
+        page_index = -1
+        for page in get_unsolved_pages():
 
-    # Bruteforce
-    page_index = 0
-    for page in get_unsolved_pages():
-        page_index += 1
-        print(f'Page {page_index}')
-        for add in (False, True):
-            for use_prime_as_base in (False, True):
-                t = MobiusTotientPrimeTransformer(add=add, use_prime_as_base=use_prime_as_base)
+            # Increase page index
+            page_index += 1
+
+            # Iterate all number of totient operations
+            for tot_call_count in range(1, 3):
+                
+                # Try reversing and then run totient index manipulation
                 pt = ProcessedText(page)
-                t.transform(pt)
-                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
-                if word_matches >= 3:
-                    print(f'{word_matches}\n\n{pt.to_latin()}')
-                    press_enter()
+                ReverseTransformer().transform(pt)
+                TotientPrimeTransformer(tot_calls=tot_call_count).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                # Try without reversing
+                pt = ProcessedText(page)
+                TotientPrimeTransformer(tot_calls=tot_call_count).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                # Reverse after totient index manipulation
+                ReverseTransformer().transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+if __name__ == '__main__':
+    Attempts.double_tot_index_with_reversing()
