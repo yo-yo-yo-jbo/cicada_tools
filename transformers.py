@@ -241,9 +241,10 @@ class VigenereTransformer(TransformerBase):
 class TotientPrimeTransformer(TransformerBase):
     """
         Substructs or adds the totient of primes (i.e. p-1) from each index.
+        You can also call the totient function recusrively, if needed, or not call it at all.
     """
 
-    def __init__(self, add=True, interrupt_indices=set()):
+    def __init__(self, add=True, interrupt_indices=set(), tot_calls=1):
         """
             Creates an instance.
         """
@@ -268,7 +269,9 @@ class TotientPrimeTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 new_index = RUNES.index(rune)
             else:
-                val = MathUtils.totient(curr_prime)
+                val = curr_prime
+                for i in range(tot_calls):
+                    val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1
                 new_index = (RUNES.index(rune) + val) % len(RUNES)
@@ -322,6 +325,19 @@ class MobiusTotientPrimeTransformer(TransformerBase):
 
         # Set the result
         processed_text.set_runes(result)
+
+class ReverseTransformer(TransformerBase):
+    """
+        Reverses the processed text.
+    """
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Reverses runes
+        processed_text.set_runes(processed_text.get_runes()[::-1])
 
 class UnsolvedTransformer(TransformerBase):
     """
