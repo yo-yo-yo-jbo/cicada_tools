@@ -451,7 +451,8 @@ class Attempts(object):
                 pt = ProcessedText(page)
                 VigenereTransformer(key=key).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                    print(f'PAGE {page_index} (Vigenere Key={key}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
+                    screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
 
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
@@ -460,19 +461,22 @@ class Attempts(object):
                     pt = ProcessedText(page)
                     AutokeyTransformer(key=key, mode=mode).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        print(f'PAGE {page_index} (Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
+                        screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
 
                     # Reverse
                     ReverseTransformer().transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        print(f'PAGE {page_index} (Autokey Key={key}, mode={mode}, reversed, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
+                        screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
 
                     # Start from reversing and then apply Autokey
                     pt = ProcessedText(page)
                     ReverseTransformer().transform(pt)
                     AutokeyTransformer(key=key, mode=mode).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        print(f'PAGE {page_index} (Reversed text Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
+                        screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
 
 def research_menu():
     """
