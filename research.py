@@ -10,52 +10,7 @@ import itertools
 import sys
 from tqdm import tqdm
 import string
-
-# Colors
-RED, GREEN, BLUE, RESET_COLORS = '', '', '', ''
-try:
-    import colorama
-    colorama.init()
-    RED = colorama.Fore.RED + colorama.Style.BRIGHT
-    GREEN = colorama.Fore.GREEN + colorama.Style.BRIGHT
-    BLUE = colorama.Fore.BLUE + colorama.Style.BRIGHT
-    RESET_COLORS = colorama.Style.RESET_ALL
-except Exception:
-    pass
-
-def press_enter():
-    """
-        Waits for an ENTER keypress.
-    """
-
-    # Get input and clear the screen
-    _ = input()
-    if os.name == 'nt':
-        os.system('cls')
-    else:
-        os.system('clear')
-
-def print_solved_text(text):
-    """
-        Prettifies and prints solved text.
-    """
-
-    # Color digits and lowercase
-    s = text
-    for c in string.digits + string.ascii_lowercase:
-        s = s.replace(c, f'[!!!BLUE!!!]{c}[!!!RESET_COLORS!!!]')
-    s = s.replace('[!!!RESET_COLORS!!!]', RESET_COLORS).replace('[!!!BLUE!!!]', BLUE)
-
-    # Color runes
-    for rune in RUNES:
-        s = s.replace(rune, f'{RED}{rune}{RESET_COLORS}')
-    
-    # Color uppercase
-    for letter in string.ascii_uppercase:
-        s = s.replace(letter, f'{GREEN}{letter}{RESET_COLORS}')
-
-    # Print
-    print(s)
+import screen
 
 def get_unsolved_pages():
     """
@@ -158,7 +113,6 @@ def show_unsolved_pages_potential_cribs():
             continue
         header_words_lengths = [ len(w) for w in header_words ]
         print(f'{page}\n\n{header_words_lengths}')
-        #press_enter()
 
 def auto_crib_get_keys():
     """
@@ -270,13 +224,13 @@ def bruteforce_autokey(word_match_threashold):
                     ShiftTransformer(shift=shift).transform(shift_pt)
                     if shift_pt.get_first_non_wordlist_word_index(wordlist) > word_match_threashold:
                         print(f'Page {page} with shift {shift} has {shift_pt.get_first_non_wordlist_word_index(wordlist)} matches\n\n{shift_pt.to_latin()}')
-                        press_enter()
+                        screen.press_enter()
 
                     # Try Atbash
                     AtbashTransformer().transform(shift_pt)
                     if shift_pt.get_first_non_wordlist_word_index(wordlist) > word_match_threashold:
                         print(f'Page {page_index} with shift {shift} and Atbash has {shift_pt.get_first_non_wordlist_word_index(wordlist)} matches\n\n{shift_pt.to_latin()}')
-                        press_enter()
+                        screen.press_enter()
 
 def bruteforce_autokey_mobius():
 
@@ -419,8 +373,8 @@ class Attempts(object):
 
             # Present and wait for input
             print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n')
-            print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
-            press_enter()
+            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
+            screen.press_enter()
             page_index += 1
 
     @staticmethod
@@ -525,16 +479,22 @@ def research_menu():
         Research menu.
     """
 
+    # Print our logo
+    screen.print_logo()
+
     # List all static methods in Attempts
+    print('== METHODS AVAILABLE ==')
     attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
     index = 0
     for k, v in attempts:
         index += 1
-        print(f'{index}. {k}')
+        nice_text = k.replace('_', ' ').title()
+        print(f'{index}. {nice_text}')
     
     # Choose
     try:
         method_index = int(input('Choose the method: ').strip())
+        screen.clear()
         attempts[method_index - 1][1].__func__()
     except Exception as ex:
         print(f'Error\n{ex}')
