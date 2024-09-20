@@ -6,7 +6,7 @@ import base64
 from core import RUNES
 
 # Colors
-RED, GREEN, BLUE, WHITE, RESET_COLORS = '', '', '', '', ''
+RED, GREEN, BLUE, WHITE, YELLOW, RESET_COLORS = '', '', '', '', '', ''
 try:
     import colorama
     colorama.init()
@@ -14,6 +14,7 @@ try:
     GREEN = colorama.Fore.GREEN + colorama.Style.BRIGHT
     BLUE = colorama.Fore.BLUE + colorama.Style.BRIGHT
     WHITE = colorama.Fore.WHITE + colorama.Style.BRIGHT
+    YELLOW = colorama.Fore.YELLOW
     RESET_COLORS = colorama.Style.RESET_ALL
 except Exception:
     pass
@@ -28,6 +29,23 @@ def print_logo():
 
     # White if possible
     print(f'{WHITE}{LOGO}{RESET_COLORS}')
+
+def print_blue(msg, end='\n'):
+    """
+        Prints a blue message.
+    """
+
+    # Blue if possible
+    print(f'{BLUE}{msg}{RESET_COLORS}', end=end)
+
+
+def print_yellow(msg, end='\n'):
+    """
+        Prints a yellow message.
+    """
+
+    # Yellow if possible
+    print(f'{YELLOW}{msg}{RESET_COLORS}', end=end)
 
 def clear():
     """

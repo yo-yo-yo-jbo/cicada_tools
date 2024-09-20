@@ -479,17 +479,21 @@ def research_menu():
         Research menu.
     """
 
-    # Print our logo
-    screen.print_logo()
+    # Clear screen
+    screen.clear()
 
     # List all static methods in Attempts
-    print('== METHODS AVAILABLE ==')
+    screen.print_yellow('== METHODS AVAILABLE ==')
     attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
     index = 0
     for k, v in attempts:
         index += 1
-        nice_text = k.replace('_', ' ').title()
-        print(f'{index}. {nice_text}')
+        nice_title = k.replace('_', ' ').title()
+        nice_desc = v.__func__.__doc__.strip().split('\n')[0]
+        if len(nice_desc) > 170:
+            nice_desc = nice_desc[:170] + '...'
+        screen.print_blue(f'{index}.', end=' ')
+        print(f'{nice_title}\n\t{nice_desc}')
     
     # Choose
     try:
