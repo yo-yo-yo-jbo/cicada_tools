@@ -519,5 +519,24 @@ class Attempts(object):
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
+def research_menu():
+    """
+        Research menu.
+    """
+
+    # List all static methods in Attempts
+    attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
+    index = 0
+    for k, v in attempts:
+        index += 1
+        print(f'{index}. {k}')
+    
+    # Choose
+    try:
+        method_index = int(input('Choose the method: ').strip())
+        attempts[method_index - 1][1].__func__()
+    except Exception as ex:
+        print(f'Error\n{ex}')
+
 if __name__ == '__main__':
-    Attempts.double_tot_index_with_reversing()
+    research_menu()
