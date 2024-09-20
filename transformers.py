@@ -344,6 +344,45 @@ class ReverseTransformer(TransformerBase):
         # Reverses runes
         processed_text.set_runes(processed_text.get_runes()[::-1])
 
+class KeystreamTransformer(TransformerBase):
+    """
+        Uses a keystream to either add or substruct from each rune value.
+        Keystream is assumed to be infinite or sufficiently long.
+    """
+
+    def __init__(self, add=True, keystream=None, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Save the keystream and the action
+        self._keystream = keystream
+        self._action = action
+
+        # Save the interrupters
+        self._interrupt_indices = interrupt_indices
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Runs the keystream
+        result = []
+        rune_index = -1
+        for rune in pt.get_runes():
+            rune_index += 1
+            if rune_index in self._interrupt_indices:
+                result.append(rune)
+            else:
+                val = next(self._keystream)
+                if not self._add:
+                    val *= -1
+                result.append(RUNES[val % len(RUNES)])
+
+        # Set the result
+        processed_text.set_runes(result)
+
 class UnsolvedTransformer(TransformerBase):
     """
         Marks the processed text as unsolved.

@@ -398,7 +398,7 @@ class Attempts(object):
 
         # Iterate all pages
         page_index = -1
-        for page in get_unsolved_pages():
+        for page in tqdm(get_unsolved_pages(), desc='Pages being analyzed'):
 
             # Increase page index
             page_index += 1
@@ -481,4 +481,4 @@ class Attempts(object):
                         print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
 if __name__ == '__main__':
-    Attempts.autokey_and_vigenere_bruteforce_with_reversing()
+    Attempts.double_tot_index_with_reversing()
