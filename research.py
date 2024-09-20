@@ -8,6 +8,7 @@ from transformers import *
 import os
 import itertools
 import sys
+from tqdm import tqdm
 
 def press_enter():
     """
@@ -89,11 +90,12 @@ def get_rune_wordlist(use_dictionary=False):
             result.add(word)
 
     # Optionally extend to use a wordlist
-    with open('english_wordlist.txt', 'r') as fp:
-        for word in fp.read().split('\n'):
-            runic = latin_to_runes(word)
-            if len(runic) > 0:
-                result.add(runic)
+    if use_dictionary:
+        with open('english_wordlist.txt', 'r') as fp:
+            for word in fp.read().split('\n'):
+                runic = latin_to_runes(word)
+                if len(runic) > 0:
+                    result.add(runic)
 
     # Return wordlist sorted by word length descending
     return sorted(result, key=len)[::-1]
@@ -446,7 +448,7 @@ class Attempts(object):
             page_index += 1
 
             # Iterate all keys
-            for key in keys:
+            for key in tqdm(keys, desc=f'Page {page_index}'):
                
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
