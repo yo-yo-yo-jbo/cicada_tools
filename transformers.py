@@ -286,6 +286,51 @@ class TotientPrimeTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result)
 
+class TotientFibTransformer(TransformerBase):
+    """
+        Substructs or adds the totient of the Fibonacci sequence from each index.
+        You can also call the totient function recusrively, if needed, or not call it at all.
+    """
+
+    def __init__(self, add=True, interrupt_indices=set(), tot_calls=1):
+        """
+            Creates an instance.
+        """
+
+        # Save the action and the number of totient calls
+        self._add = add
+        self._tot_calls = tot_calls
+
+        # Save the interrupters
+        self._interrupt_indices = interrupt_indices
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Substract or adds the totient of each element in the Fibonacci sequence 
+        result = []
+        fib_a, fib_b = 1, 1
+        rune_index = -1
+        for rune in processed_text.get_runes():
+            rune_index += 1
+            if rune_index in self._interrupt_indices:
+                new_index = RUNES.index(rune)
+            else:
+                val = fib_a
+                for i in range(self._tot_calls):
+                    val = MathUtils.totient(val)
+                if not self._add:
+                    val *= -1
+                new_index = (RUNES.index(rune) + val) % len(RUNES)
+                fib_a, fib_b = fib_b, fib_a + fib_b
+                print(f'! {fib_a} !')
+            result.append(RUNES[new_index])
+
+        # Set the result
+        processed_text.set_runes(result)
+
 class MobiusTotientPrimeTransformer(TransformerBase):
     """
         Substructs or adds to Mobius function of the totient of primes (i.e. p-1), times a either the totient or the prime, from each index.
