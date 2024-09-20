@@ -425,10 +425,11 @@ class Attempts(object):
                     print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
     @staticmethod
-    def autokey_bruteforce_with_reversing(word_threshold=4, ioc_threshold=1.4):
+    def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=4, ioc_threshold=1.4):
         """
-            Attempts Autokey bruteforcing with or without reversing the text of each page.
+            Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each page.
             Uses keys derived from all decrypted pages, with and without replacing all occurrences of first character with "F".
+            Also tries reversing all keys.
             Uses all supported modes of Autokey: plaintext, cipehrtext or alternating (starting from either plaintext or ciphertext, or using the Mobius function).
         """
 
@@ -437,7 +438,9 @@ class Attempts(object):
 
         # Build potential keys
         keys = get_rune_wordlist()
+        rev_keys = [ k[::-1] for k in keys ]
         keys += [ k.replace(k[0], RUNES[0]) for k in keys ]
+        keys += rev_keys
         keys = set(keys)
 
         # Iterate all pages
@@ -449,7 +452,13 @@ class Attempts(object):
 
             # Iterate all keys
             for key in tqdm(keys, desc=f'Page {page_index}'):
-               
+              
+                # Attempt Vigenere
+                pt = ProcessedText(page)
+                VigenereTransformer(key=key).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
 
@@ -472,4 +481,4 @@ class Attempts(object):
                         print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
 if __name__ == '__main__':
-    Attempts.autokey_bruteforce_with_reversing()
+    Attempts.autokey_and_vigenere_bruteforce_with_reversing()
