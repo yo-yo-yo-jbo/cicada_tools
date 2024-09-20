@@ -376,5 +376,33 @@ if __name__ == '__main__':
     #show_all_solved_words()
     #auto_crib_get_keys()
     #bruteforce_autokey()
-    bruteforce_autokey(3)
+    #bruteforce_autokey(3)
 
+    # Get potential keys
+    print('Building wordlist')
+    with open('wordlist/words.txt', 'r') as fp:
+        potential_keys = [ k.upper() for k in fp.read().split('\n') ]
+    potential_keys = [ ''.join([ i for i in k if i.isupper() ]) for k in potential_keys ]
+    potential_keys = [ k for k in potential_keys if len(k) > 0 ] 
+
+    # Turn all potential keys to runes
+    potential_keys = [ latin_to_runes(k) for k in potential_keys ]
+
+    # Get the wordlist and extend it to also include potential keys
+    wordlist = get_rune_wordlist()
+    wordlist += potential_keys
+
+    # Bruteforce
+    page_index = 0
+    for page in get_unsolved_pages():
+        page_index += 1
+        print(f'Page {page_index}')
+        for add in (False, True):
+            for use_prime_as_base in (False, True):
+                t = MobiusTotientPrimeTransformer(add=add, use_prime_as_base=use_prime_as_base)
+                pt = ProcessedText(page)
+                t.transform(pt)
+                word_matches = pt.get_first_non_wordlist_word_index(wordlist)
+                if word_matches >= 3:
+                    print(f'{word_matches}\n\n{pt.to_latin()}')
+                    press_enter()
