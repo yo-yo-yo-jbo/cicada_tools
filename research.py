@@ -57,30 +57,6 @@ def print_solved_text(text):
     # Print
     print(s)
 
-def show_all_pages():
-    """
-        Presents all pages.
-    """
-
-    # Decrypt all pages
-    page_index = 1
-    for page in PAGES:
-
-        # Build the processed text
-        processed_text = ProcessedText(page[0])
-
-        # Get the rune IoC
-        rune_ioc = processed_text.get_rune_ioc()
-
-        # Decrypt
-        page[1].transform(processed_text)
-
-        # Present and wait for input
-        print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n')
-        print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
-        press_enter()
-        page_index += 1
-
 def get_unsolved_pages():
     """
         Gets all unsolved pages.
@@ -421,6 +397,31 @@ class Attempts(object):
     """
         Attempts made.
     """
+
+    @staticmethod
+    def show_all_pages():
+        """
+            Presents all pages.
+        """
+
+        # Decrypt all pages
+        page_index = 1
+        for page in PAGES:
+
+            # Build the processed text
+            processed_text = ProcessedText(page[0])
+
+            # Get the rune IoC
+            rune_ioc = processed_text.get_rune_ioc()
+
+            # Decrypt
+            page[1].transform(processed_text)
+
+            # Present and wait for input
+            print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n')
+            print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
+            press_enter()
+            page_index += 1
 
     @staticmethod
     def double_tot_index_with_reversing(word_threshold=4, ioc_threshold=1.4):

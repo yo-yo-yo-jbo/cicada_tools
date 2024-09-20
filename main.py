@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from research import show_all_pages
+from research import Attempts
 
 def main():
     """
@@ -7,7 +7,7 @@ def main():
     """
 
     # Shows all pages
-    show_all_pages()
+    Attempts.show_all_pages()
 
 if __name__ == '__main__':
     main()
