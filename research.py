@@ -67,22 +67,6 @@ def get_rune_wordlist(use_dictionary=False):
     # Return wordlist sorted by word length descending
     return sorted(result, key=len)[::-1]
 
-def show_all_solved_words():
-    """
-        Presents all solved words.
-    """
-
-    # Get words and show them
-    words = get_rune_wordlist()
-    sep_len = 4 + max([ len(word) for word in words ])
-    for word in words:
-        line = word
-        line += ' ' * (sep_len - len(line))
-        line += runes_to_latin(word)
-        line += ' ' * (sep_len * 2 - len(line))
-        line += str(len(word))
-        print(line)
-
 def runes_to_latin(runes):
     """
         Turns runes to latin, assuming input is only runes.
@@ -98,21 +82,6 @@ def indices_to_latin(indices):
 
     # Translate to runes and then to latin
     return runes_to_latin(''.join([ RUNES[i] for i in indices ]))
-
-def show_unsolved_pages_potential_cribs():
-    """
-        Shows each unsolved page with potential cribs at the beginning of the page.
-    """
-
-    # Iterate all unsolved pages
-    for page in get_unsolved_pages():
-
-        # Get all words until a period
-        header_words = ProcessedText(page.split('.')[0]).get_rune_words()
-        if len(header_words) == 0:
-            continue
-        header_words_lengths = [ len(w) for w in header_words ]
-        print(f'{page}\n\n{header_words_lengths}')
 
 def auto_crib_get_keys():
     """
@@ -376,6 +345,45 @@ class Attempts(object):
             screen.print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
             screen.press_enter()
             page_index += 1
+
+    def show_all_solved_words():
+        """
+            Presents all solved words.
+        """
+
+        # Get words and show them
+        words = get_rune_wordlist()
+        sep_len = 4 + max([ len(word) for word in words ])
+        word_index = 0
+        for word in words:
+            word_index += 1
+            line = f'[{word_index} / {len(words)}]: word'
+            line += ' ' * (sep_len - len(line))
+            line += runes_to_latin(word)
+            line += ' ' * (sep_len * 2 - len(line))
+            line += str(len(word))
+            screen.print_solved_text(line)
+            screen.press_enter()
+
+    @staticmethod
+    def show_unsolved_pages_potential_cribs_lengths():
+        """
+            Shows each unsolved page with potential crib lengths at the beginning of the page.
+        """
+
+        # Iterate all unsolved pages
+        page_index = -1
+        for page in get_unsolved_pages():
+
+            # Get all words until a period
+            page_index += 1
+            header_words = ProcessedText(page.split('.')[0]).get_rune_words()
+            if len(header_words) == 0:
+                continue
+            header_words_lengths = [ len(w) for w in header_words ]
+            print(f'Page: {page_index}\n\n')
+            screen.print_solved_text(f'{page}\n\n{header_words_lengths}')
+            screen.press_enter()
 
     @staticmethod
     def double_tot_index_with_reversing(word_threshold=6, ioc_threshold=1.8):
