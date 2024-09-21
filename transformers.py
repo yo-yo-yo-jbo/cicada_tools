@@ -96,9 +96,12 @@ class AutokeyTransformer(TransformerBase):
         Autokey cipher decryption.
     """
 
-    def __init__(self, key, mode, interrupt_indices=set()):
+    def __init__(self, key, mode, use_gp=False, interrupt_indices=set()):
         """
             Creates an instance.
+            The key should be in runes.
+            The mode is one of the aforementioned AutokeyMode values.
+            The GP boolean indicates whether to use primes on the index as an intermediate step in keystream extension.
         """
 
         # Save the key indices
@@ -110,6 +113,7 @@ class AutokeyTransformer(TransformerBase):
 
         # Save the mode
         self._mode = mode
+        self._use_gp = False
 
     def transform(self, processed_text):
         """
@@ -129,21 +133,35 @@ class AutokeyTransformer(TransformerBase):
         ciphertext = processed_text.get_runes()
         for rune in ciphertext:
             rune_index += 1
+
+            # Handle Mobius function and change state accrdingly
             if self._mode in (AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
                 mob_value = MathUtils.mobius(rune_index + 1)
                 extend_to_plaintext = (AutokeyMode.ALT_MOBIUS_START_PLAINTEXT and mob_value == 1) or (AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT and mob_value == 0)
+
+            # Treat mobius value of 0 just like an interrupt index
             if rune_index in self._interrupt_indices or mob_value == 0:
                 new_index = RUNES.index(rune)
             else:
                 new_index = (RUNES.index(rune) - running_key_indices[key_index]) % len(RUNES)
                 key_index += 1
+
+                # Extend the keystream from either plaintext or ciphertext
                 if extend_to_plaintext:
                     running_key_indices.append(new_index)
                 else:
                     running_key_indices.append(RUNES.index(ciphertext[ciphertext_extension_index]))
                     ciphertext_extension_index += 1
+
+                # Using GP mode we extend the running keystream with the GP value of the lastly added value
+                if self._use_gp:
+                    running_key_indices[-1] = GP_PRIMES[running_key_indices[-1]] % len(RUNES)
+
+                # Update whether to extend the keystream to plaintext if needed
                 if self._mode in (AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT):
                     extend_to_plaintext = not extend_to_plaintext
+
+            # Add the new rune
             result.append(RUNES[new_index])
 
         # Set the result
