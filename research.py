@@ -520,7 +520,9 @@ def research_menu():
         # Always give the option of quitting
         print('\nChoose ', end='')
         screen.print_yellow('Q', end='')
-        print(' to quit.\n')
+        print(' to quit, or ', end='')
+        screen.print_yellow('CTRL+C', end='')
+        print(' to stop a method mid-execution.\n')
 
         # Get choice and run it
         try:
@@ -532,6 +534,8 @@ def research_menu():
             assert method_index > 0 and method_index <= len(attempts), Exception('Invalid choice')
             screen.clear()
             attempts[method_index - 1][1].__func__()
+        except KeyboardInterrupt:
+            continue
         except Exception as ex:
             last_error = f'Error: {ex}'
 
