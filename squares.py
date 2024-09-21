@@ -34,7 +34,6 @@ SQUARES = [
     ),
 
     # Page 23 but substructing from 3301
-    # Missing primes: 17, 19, 29 etc...
     Matrix(
         [   43,    79,  149,  263 ],
         [   23,     2,    3,  463 ],

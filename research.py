@@ -487,29 +487,45 @@ def research_menu():
         Research menu.
     """
 
-    # Clear screen
-    screen.clear()
+    # Run menu forever
+    last_error = ''
+    while True:
 
-    # List all static methods in Attempts
-    screen.print_yellow('== METHODS AVAILABLE ==')
-    attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
-    index = 0
-    for k, v in attempts:
-        index += 1
-        nice_title = k.replace('_', ' ').title()
-        nice_desc = v.__func__.__doc__.strip().split('\n')[0]
-        if len(nice_desc) > 170:
-            nice_desc = nice_desc[:170] + '...'
-        screen.print_blue(f'{index}.', end=' ')
-        print(f'{nice_title}\n\t{nice_desc}')
-    
-    # Choose
-    try:
-        method_index = int(input('Choose the method: ').strip())
+        # Clear screen
         screen.clear()
-        attempts[method_index - 1][1].__func__()
-    except Exception as ex:
-        print(f'Error\n{ex}')
+        if last_error is not None:
+            screen.print_red(last_error)
+
+        # List all static methods in Attempts
+        screen.print_yellow('== METHODS AVAILABLE ==')
+        attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
+        index = 0
+        for k, v in attempts:
+            index += 1
+            nice_title = k.replace('_', ' ').title()
+            nice_desc = v.__func__.__doc__.strip().split('\n')[0]
+            if len(nice_desc) > 170:
+                nice_desc = nice_desc[:170] + '...'
+            screen.print_blue(f'{index}.', end=' ')
+            print(f'{nice_title}\n\t{nice_desc}')
+
+        # Always give the option of quitting
+        print('\nChoose ', end='')
+        screen.print_yellow('Q', end='')
+        print(' to quit.\n')
+
+        # Get choice and run it
+        try:
+            choice = input('Choose the method: ').strip()
+            if choice in ('q', 'Q'):
+                break
+            assert choice.isdigit(), Exception('Invalid choice')
+            method_index = int(choice)
+            assert method_index > 0 and method_index <= len(attempts), Exception('Invalid choice')
+            screen.clear()
+            attempts[method_index - 1][1].__func__()
+        except Exception as ex:
+            last_error = f'Error: {ex}'
 
 if __name__ == '__main__':
     research_menu()
