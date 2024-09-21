@@ -38,6 +38,14 @@ def print_blue(msg, end='\n'):
     # Blue if possible
     print(f'{BLUE}{msg}{RESET_COLORS}', end=end)
 
+def print_green(msg, end='\n'):
+    """
+        Prints a green message.
+    """
+
+    # Green if possible
+    print(f'{GREEN}{msg}{RESET_COLORS}', end=end)
+
 def print_red(msg, end='\n'):
     """
         Prints a red message.

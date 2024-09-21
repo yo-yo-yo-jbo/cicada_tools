@@ -420,7 +420,7 @@ class KeystreamTransformer(TransformerBase):
 
         # Save the keystream and the action
         self._keystream = keystream
-        self._action = action
+        self._add = add
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -433,18 +433,21 @@ class KeystreamTransformer(TransformerBase):
         # Runs the keystream
         result = []
         rune_index = -1
-        for rune in pt.get_runes():
-            rune_index += 1
-            if rune_index in self._interrupt_indices:
-                result.append(rune)
-            else:
-                val = next(self._keystream)
-                if not self._add:
-                    val *= -1
-                result.append(RUNES[val % len(RUNES)])
+        try:
+            for rune in processed_text.get_runes():
+                rune_index += 1
+                if rune_index in self._interrupt_indices:
+                    result.append(rune)
+                else:
+                    val = next(self._keystream)
+                    if not self._add:
+                        val *= -1
+                    result.append(RUNES[val % len(RUNES)])
 
-        # Set the result
-        processed_text.set_runes(result)
+            # Set the result
+            processed_text.set_runes(result)
+        except StopIteration:
+            pass
 
 class UnsolvedTransformer(TransformerBase):
     """

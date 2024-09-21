@@ -4,6 +4,7 @@ from core import RUNES
 from core import LATIN
 from core import ProcessedText
 from core import latin_to_runes
+import secrets
 from transformers import *
 import os
 import itertools
@@ -427,6 +428,31 @@ class Attempts(object):
                         print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
     @staticmethod
+    def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
+        """
+            Attempts to use the Cicada 3301 message missing primes from 2013 as a keystream.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
+
+        # Iterate all pages
+        page_index = -1
+        for page in tqdm(get_unsolved_pages()):
+
+            # Increase page index
+            page_index += 1
+
+            # Whether to add or substruct
+            for add in (False, True):
+
+                # Try decryption
+                pt = ProcessedText(page)
+                KeystreamTransformer(add=add, keystream=iter(secrets.MISSING_PRIMES_2013)).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+    @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=6, ioc_threshold=1.8, min_key_len=6):
         """
             Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each page.
@@ -496,13 +522,24 @@ def research_menu():
     """
 
     # Run menu forever
-    last_error = ''
+    last_error = None
+    finished_run = False
+    stopped_by_user = False
+    started_run = False
     while True:
 
         # Clear screen
         screen.clear()
         if last_error is not None:
-            screen.print_red(last_error)
+            screen.print_red(f'{last_error}\n')
+            last_error = None
+        if finished_run:
+            screen.print_green('FINISHED METHOD\n')
+            finished_run = False
+        if stopped_by_user:
+            screen.print_yellow('STOPPED BY USER\n')
+            stopped_by_user = False
+        started_run = False
 
         # List all static methods in Attempts
         screen.print_yellow('== METHODS AVAILABLE ==')
@@ -529,16 +566,21 @@ def research_menu():
             choice = input('Choose the method: ').strip()
             if choice in ('q', 'Q'):
                 break
+            if choice == '':
+                continue
             assert choice.isdigit(), Exception('Invalid choice')
             method_index = int(choice)
             assert method_index > 0 and method_index <= len(attempts), Exception('Invalid choice')
             screen.clear()
+            started_run = True
             attempts[method_index - 1][1].__func__()
-            screen.press_enter()
+            started_run = False
+            finished_run = True
         except KeyboardInterrupt:
+            stopped_by_user = started_run
             continue
         except Exception as ex:
-            last_error = f'Error: {ex}'
+            last_error = f'ERROR: {ex}'
 
 if __name__ == '__main__':
     research_menu()
