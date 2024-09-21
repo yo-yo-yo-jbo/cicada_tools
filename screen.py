@@ -72,7 +72,9 @@ def press_enter():
     """
 
     # Get input and clear the screen
-    _ = input()
+    print('Press ', end='')
+    print_yellow('ENTER', end='')
+    _ = input(' to continue.')
     clear()
 
 def print_solved_text(text):

@@ -534,6 +534,7 @@ def research_menu():
             assert method_index > 0 and method_index <= len(attempts), Exception('Invalid choice')
             screen.clear()
             attempts[method_index - 1][1].__func__()
+            screen.press_enter()
         except KeyboardInterrupt:
             continue
         except Exception as ex:
