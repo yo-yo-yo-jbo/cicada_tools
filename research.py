@@ -352,6 +352,7 @@ class Attempts(object):
             screen.press_enter()
             page_index += 1
 
+    @staticmethod
     def show_all_solved_words():
         """
             Presents all solved words.
