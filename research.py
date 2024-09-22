@@ -346,7 +346,7 @@ class Attempts(object):
             page[1].transform(processed_text)
 
             # Present and wait for input
-            print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\n\n')
+            print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
             screen.print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
             screen.press_enter()
             page_index += 1
