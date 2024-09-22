@@ -589,7 +589,7 @@ class Attempts(object):
 
                     # Try a special function on the sequence which comes from the Cicada page 15 spiral
                     pt = ProcessedText(page)
-                    func_seq = [ abs(1033 - elem) for elem in sequences[seq] ]
+                    func_seq = [ abs(3301 - elem) for elem in sequences[seq] ]
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         print(f'PAGE {page_index} (Seq={seq} with 1033 function, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
