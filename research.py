@@ -520,7 +520,7 @@ class Attempts(object):
                             print(f'PAGE {page_index} (Reversed text Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
                             screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
     @staticmethod
-    def oeis_keystream(word_threshold=6, ioc_threshold=900):
+    def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
         """
             Tries all OEIS sequences on each page, using them as keystreams.
         """

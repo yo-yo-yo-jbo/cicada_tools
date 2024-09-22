@@ -437,7 +437,7 @@ class KeystreamTransformer(TransformerBase):
                     val = next(self._keystream)
                     if not self._add:
                         val *= -1
-                    result.append(RUNES[val % len(RUNES)])
+                    result.append(RUNES[RUNES.index(rune) + val % len(RUNES)])
 
             # Set the result
             processed_text.set_runes(result)
