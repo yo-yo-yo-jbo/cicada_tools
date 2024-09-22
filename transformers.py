@@ -72,6 +72,54 @@ class MathUtils(object):
         # Create an iterator
         return iter(cls._FIBO_PRIMES_CACHE)
 
+    @abstractmethod
+    def matrix_to_spiral_stream(matrix, repeat=False):
+        """
+            Creates a repeating stream from a given square matrix.
+            Can optionally repeat the pattern indefinitely.
+        """
+
+        # Define directions
+        dirs = [ (1, 0), (0, 1), (-1, 0), (0, -1) ]
+        size = matrix.rows
+
+        # Optionally repeat forever
+        while True:
+
+            # Find the midpoint
+            x, y = (size - 1) // 2, (size - 1) // 2
+
+            # Start right
+            count = 0
+            dir_index = 0
+            steps_left = 1
+            visited = 0
+            dir_changes_even = False
+            curr_step_size = 1
+
+            # Return entire matrix
+            while visited < size * size:
+
+                # Yield the current point
+                yield matrix.row(y)[x]
+                visited += 1
+
+                # Change direction if we are out of steps
+                if steps_left == 0:
+                    dir_index = (dir_index + 1) % len(dirs)
+                    if dir_changes_even:
+                        curr_step_size += 1
+                    steps_left = curr_step_size
+                    dir_changes_even = not dir_changes_even
+
+                # Walk direction
+                x, y = (x + dirs[dir_index][0], y + dirs[dir_index][1])
+                steps_left -= 1
+
+            # Break out unless repeating
+            if not repeat:
+                break
+
 class TransformerBase(ABC):
     """
         Base class for transformers.
@@ -520,6 +568,20 @@ class Page15FiboPrimesTransformer(KeystreamTransformer):
 
         # Call super
         super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.get_fibo_primes()), interrupt_indices=interrupt_indices)
+
+class SpiralSquareTransformer(KeystreamTransformer):
+    """
+        Given a square matrix, uses its values as a keystream in a clockwise spiral shape from its center.
+        This pattern was erived from Page 15's square matrix.
+    """
+
+    def __init__(self, matrix, add=True, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices)
 
 class UnsolvedTransformer(TransformerBase):
     """

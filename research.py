@@ -4,6 +4,7 @@ from core import RUNES
 from core import LATIN
 from core import ProcessedText
 from core import latin_to_runes
+from squares import SQUARES
 import secrets
 from transformers import *
 import os
@@ -629,6 +630,32 @@ class Attempts(object):
                 pt = ProcessedText(page)
                 FiboPrimesTransformer(add=add_option).transform(pt)
                 print(f'PAGE {page_index} (fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                screen.press_enter()
+
+    @staticmethod
+    def spiral_square_keystream():
+        """
+            Try to use all squares as keystreams while walking in a spiral.
+            Spiral pattern was concluded from page 15, walking right and going clockwise.
+        """
+
+        # Iterate all pages
+        page_index = -1
+        for page in get_unsolved_pages():
+
+            # Increase page index
+            page_index += 1
+
+            # Iterate all squares
+            square_index = -1
+            for square in SQUARES:
+
+                # Use as a keystream
+                square_index += 1
+                pt = ProcessedText(page)
+                SpiralSquareTransformer(matrix=square).transform(pt)
+                print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
                 screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
 
