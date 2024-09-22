@@ -599,7 +599,7 @@ class Attempts(object):
     @staticmethod
     def page15_function_keystream():
         """
-            Uses abs(3301-p) on all primes p as a keystream, as well as Fibonacci-indexed primes.
+            Uses abs(3301-p) on all primes p as a keystream, as well as Fibonacci-indexed primes and other variants.
             This function was concluded from the Page 15 square matrix.
         """
 
