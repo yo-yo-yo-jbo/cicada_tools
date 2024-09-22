@@ -541,6 +541,42 @@ class Page15FuncPrimesTransformer(KeystreamTransformer):
         # Call super
         super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices)
 
+class Page15FuncRuneTransformer(TransformerBase):
+    """
+        Uses abs(3301 - primes[fib[rune_index]]) as a transformation each each rune.
+    """
+
+    def __init__(self, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Save the interrupters
+        self._interrupt_indices = interrupt_indices
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Get the fibo-primes to cover all runes
+        fibo_primes = list(MathUtils.get_fibo_primes())[:len(RUNES)]
+
+        # Runs the keystream
+        result = []
+        rune_index = -1
+        orig_runes = processed_text.get_runes()
+        for rune in orig_runes:
+            rune_index += 1
+            if rune_index in self._interrupt_indices:
+                result.append(rune)
+            else:
+                val = abs(3301 - fibo_primes[RUNES.index(rune)])
+                result.append(RUNES[val % len(RUNES)])
+
+        # Set the result
+        processed_text.set_runes(result)
+
 class FiboPrimesTransformer(KeystreamTransformer):
     """
         Uses the primes indexed by Fibonacci sequence (2, 3, 5, 17, 11, 17, 23) as a keystream.

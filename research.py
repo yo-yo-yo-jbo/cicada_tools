@@ -649,6 +649,26 @@ class Attempts(object):
                 screen.press_enter()
 
     @staticmethod
+    def page15_fibo_primes_rune_switch():
+        """
+            Transforms runes based on abs(3301 - primes[fib[rune_index]]).
+        """
+
+        # Iterate all pages
+        page_index = -1
+        for page in get_unsolved_pages():
+
+            # Increase page index
+            page_index += 1
+
+            # Transform and present 
+            pt = ProcessedText(page)
+            Page15FuncRuneTransformer().transform(pt)
+            print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}):\n\n')
+            screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+            screen.press_enter()
+
+    @staticmethod
     def spiral_square_keystream():
         """
             Try to use all squares as keystreams while walking in a spiral.
