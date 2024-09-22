@@ -650,14 +650,17 @@ class Attempts(object):
             # Iterate all squares
             square_index = -1
             for square in SQUARES:
-
-                # Use as a keystream
+                
+                # Try adding or substructing
                 square_index += 1
-                pt = ProcessedText(page)
-                SpiralSquareTransformer(matrix=square).transform(pt)
-                print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
-                screen.press_enter()
+                for add_option in (False, True):
+
+                    # Use as a keystream
+                    pt = ProcessedText(page)
+                    SpiralSquareTransformer(matrix=square, add=add_option).transform(pt)
+                    print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
+                    screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                    screen.press_enter()
 
 def research_menu():
     """
