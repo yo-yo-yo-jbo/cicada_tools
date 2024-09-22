@@ -697,7 +697,10 @@ def research_menu():
         except KeyboardInterrupt:
             stopped_by_user = started_run
             print('\n')
-            screen.press_enter()
+            try:
+                screen.press_enter()
+            except KeyboardInterrupt:
+                pass
             continue
         except Exception as ex:
             last_error = f'ERROR: {ex}'
