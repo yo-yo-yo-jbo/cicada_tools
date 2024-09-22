@@ -595,9 +595,9 @@ class Attempts(object):
                         print(f'PAGE {page_index} (Seq={seq} with 1033 function, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
     @staticmethod
-    def page15_function_primes_keystream():
+    def page15_function_keystream():
         """
-            Uses abs(3301-p) on all primes p as a keystream.
+            Uses abs(3301-p) on all primes p as a keystream, as well as Fibonacci-indexed primes.
             This function was concluded from the Page 15 square matrix.
         """
 
@@ -614,7 +614,19 @@ class Attempts(object):
                 # Try on primes 
                 pt = ProcessedText(page)
                 Page15FuncPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                print(f'PAGE {page_index} Func15(primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                screen.press_enter()
+
+                # Try on Fibonacci-indexed primes
+                pt = ProcessedText(page)
+                Page15FiboPrimesTransformer(add=add_option).transform(pt)
+                print(f'PAGE {page_index} Func15(fibo-primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                screen.press_enter()
+
+                # Try on Fibonacci-indexed primes without the page 15 function
+                pt = ProcessedText(page)
+                Page15FiboPrimesTransformer(add=add_option).transform(pt)
+                print(f'PAGE {page_index} (fibo-primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
                 screen.press_enter()
 
 def research_menu():
@@ -677,9 +689,11 @@ def research_menu():
             attempts[method_index - 1][1].__func__()
             started_run = False
             finished_run = True
+            print('\n')
             screen.press_enter()
         except KeyboardInterrupt:
             stopped_by_user = started_run
+            print('\n')
             screen.press_enter()
             continue
         except Exception as ex:

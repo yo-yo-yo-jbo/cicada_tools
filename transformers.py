@@ -4,6 +4,7 @@ from abc import abstractmethod
 import sympy
 from enum import Enum
 from core import ProcessedText
+import os
 
 # Autokey modes
 AutokeyMode = Enum('AutokeyMode', [ 'PLAINTEXT', 'CIPHERTEXT', 'ALT_START_PLAINTEXT', 'ALT_START_CIPHERTEXT', 'ALT_MOBIUS_START_PLAINTEXT', 'ALT_MOBIUS_START_CIPHERTEXT' ])
@@ -12,6 +13,9 @@ class MathUtils(object):
     """
         Math utilities.
     """
+
+    # Fibonacci primes cache
+    _FIBO_PRIMES_CACHE = None
 
     @staticmethod
     def find_next_prime(prev_prime):
@@ -51,6 +55,22 @@ class MathUtils(object):
         while True:
             yield curr_prime
             curr_prime = MathUtils.find_next_prime(curr_prime)
+
+    @classmethod
+    def get_fibo_primes(cls):
+        """
+            Gets primes indecex by the Fibonacci sequence.
+            Since generating those is CPU-intenstive, it was pre-generated in a file "fibo_primes.txt".
+        """
+
+        # Get from cache
+        if cls._FIBO_PRIMES_CACHE is None:
+            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fibo_primes.txt')
+            with open(path, 'r') as fp:
+                cls._FIBO_PRIMES_CACHE = map(int, fp.read().split(','))
+
+        # Create an iterator
+        return iter(cls._FIBO_PRIMES_CACHE)
 
 class TransformerBase(ABC):
     """
@@ -469,6 +489,34 @@ class Page15FuncPrimesTransformer(KeystreamTransformer):
 
         # Call super
         super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices)
+
+class FiboPrimesTransformer(KeystreamTransformer):
+    """
+        Uses the primes indexed by Fibonacci sequence (2, 3, 5, 17, 11, 17, 23) as a keystream.
+        This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
+    """
+
+    def __init__(self, add=True, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(add=add, keystream=MathUtils.get_fibo_primes(), interrupt_indices=interrupt_indices)
+
+class Page15FiboPrimesTransformer(KeystreamTransformer):
+    """
+        Treats abs(3301 - primes[fib[i]]) as a keystream.
+        This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
+    """
+
+    def __init__(self, add=True, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.get_fibo_primes()), interrupt_indices=interrupt_indices)
 
 class UnsolvedTransformer(TransformerBase):
     """
