@@ -442,7 +442,7 @@ class KeystreamTransformer(TransformerBase):
             # Set the result
             processed_text.set_runes(result)
         except StopIteration:
-            pass
+            return
 
 class UnsolvedTransformer(TransformerBase):
     """

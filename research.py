@@ -12,6 +12,10 @@ import sys
 from tqdm import tqdm
 import string
 import screen
+import requests
+import tempfile
+import gzip
+import shutil
 
 def get_unsolved_pages():
     """
@@ -515,6 +519,80 @@ class Attempts(object):
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             print(f'PAGE {page_index} (Reversed text Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
                             screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+    @staticmethod
+    def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
+        """
+            Tries all OEIS sequences on each page, using them as keystreams.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
+
+        # Check if download is necessary
+        oeis_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'oeis.txt')
+        if not os.path.isfile(oeis_filepath):
+
+            # Download stripped temporary file
+            temp_dir = tempfile.mkdtemp()
+            gz_filepath = os.path.join(temp_dir, 'oeis.gz')
+            response = requests.get('https://oeis.org/stripped.gz', stream=True)
+            total_size = int(response.headers.get('content-length', 0))
+            block_size = 1024
+            with tqdm(total=total_size, unit='B', unit_scale=True, desc='Downloading OEIS') as progress_bar:
+                with open(gz_filepath, 'wb') as fp:
+                    for data in response.iter_content(block_size):
+                        progress_bar.update(len(data))
+                        fp.write(data)
+
+            # Extract contents
+            oeis_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'oeis.txt')
+            with gzip.open(gz_filepath, 'rb') as f_in:
+                with open(oeis_filepath, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            # Best-effort deletion
+            try:
+                os.unlink(gz_filepath)
+            except Exception:
+                pass
+
+        # Parse OEIS
+        sequences = {}
+        with open(oeis_filepath, 'r') as fp:
+            for line in fp.readlines():
+                stripped_line = line.strip()
+                if len(stripped_line) == 0 or stripped_line[0] == '#':
+                    continue
+                chunks = [ elem for elem in stripped_line.split(',') if len(elem) > 0 ]
+                if len(chunks) < 2:
+                    continue
+                sequences[chunks[0].strip()] = [ int(elem.strip()) for elem in chunks[1:] ]
+        
+        # Try all sequences
+        for seq in tqdm(sequences):
+            
+            # Iterate all pages
+            page_index = -1
+            for page in get_unsolved_pages():
+
+                # Increase page index
+                page_index += 1
+
+                # Try adding or substructing
+                for add_option in (False, True):
+
+                    # Try sequence as-is
+                    pt = ProcessedText(page)
+                    KeystreamTransformer(keystream=iter(sequences[seq]), add=add_option).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (Seq={seq}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
+                    # Try a special function on the sequence which comes from the Cicada page 15 spiral
+                    pt = ProcessedText(page)
+                    func_seq = [ abs(1033 - elem) for elem in sequences[seq] ]
+                    KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (Seq={seq} with 1033 function, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
 def research_menu():
     """

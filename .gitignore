@@ -4,4 +4,5 @@ __pycache__
 # Ignore VIM swap files
 *.swp
 
-
+# Ignore OEIS
+oeis.txt
