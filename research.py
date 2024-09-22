@@ -627,6 +627,20 @@ class Attempts(object):
                 screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
 
+                # Try the Totient of the Fibonacci-indexed primes
+                pt = ProcessedText(page)
+                KeystreamTransformer(add=add_option, keystream=map(lambda x:sympy.totient(x), MathUtils.get_fibo_primes())).transform(pt)
+                print(f'PAGE {page_index} Tot(fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                screen.press_enter()
+
+                # Try the Totient of the function from page 15 on Fibonacci indexed primes
+                pt = ProcessedText(page)
+                KeystreamTransformer(add=add_option, keystream=map(lambda x:abs(3301 - sympy.totient(x)), MathUtils.get_fibo_primes())).transform(pt)
+                print(f'PAGE {page_index} Func15(Tot(fibo-primes)) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                screen.press_enter()
+
                 # Try on Fibonacci-indexed primes without the page 15 function
                 pt = ProcessedText(page)
                 FiboPrimesTransformer(add=add_option).transform(pt)
