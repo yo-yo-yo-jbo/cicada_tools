@@ -614,19 +614,22 @@ class Attempts(object):
                 # Try on primes 
                 pt = ProcessedText(page)
                 Page15FuncPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} Func15(primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                print(f'PAGE {page_index} Func15(primes) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
 
                 # Try on Fibonacci-indexed primes
                 pt = ProcessedText(page)
                 Page15FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} Func15(fibo-primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                print(f'PAGE {page_index} Func15(fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
 
                 # Try on Fibonacci-indexed primes without the page 15 function
                 pt = ProcessedText(page)
-                Page15FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} (fibo-primes) (IOC={pt.get_rune_ioc()}):\n{pt.to_latin()}\n\n')
+                FiboPrimesTransformer(add=add_option).transform(pt)
+                print(f'PAGE {page_index} (fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
 
 def research_menu():

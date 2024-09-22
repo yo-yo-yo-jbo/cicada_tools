@@ -67,7 +67,7 @@ class MathUtils(object):
         if cls._FIBO_PRIMES_CACHE is None:
             path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fibo_primes.txt')
             with open(path, 'r') as fp:
-                cls._FIBO_PRIMES_CACHE = map(int, fp.read().split(','))
+                cls._FIBO_PRIMES_CACHE = list(map(int, [ elem for elem in fp.read().split('\n') if len(elem) > 0 ]))
 
         # Create an iterator
         return iter(cls._FIBO_PRIMES_CACHE)
@@ -370,7 +370,6 @@ class TotientFibTransformer(TransformerBase):
                     val *= -1
                 new_index = (RUNES.index(rune) + val) % len(RUNES)
                 fib_a, fib_b = fib_b, fib_a + fib_b
-                print(f'! {fib_a} !')
             result.append(RUNES[new_index])
 
         # Set the result
@@ -460,8 +459,9 @@ class KeystreamTransformer(TransformerBase):
         # Runs the keystream
         result = []
         rune_index = -1
+        orig_runes = processed_text.get_runes()
         try:
-            for rune in processed_text.get_runes():
+            for rune in orig_runes:
                 rune_index += 1
                 if rune_index in self._interrupt_indices:
                     result.append(rune)
@@ -474,7 +474,10 @@ class KeystreamTransformer(TransformerBase):
             # Set the result
             processed_text.set_runes(result)
         except StopIteration:
-            return
+
+            # Extend results as much as possible
+            result = (result + orig_runes)[:len(orig_runes)]
+            processed_text.set_runes(result)
 
 class Page15FuncPrimesTransformer(KeystreamTransformer):
     """
