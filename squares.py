@@ -26,6 +26,8 @@ SQUARES = [
     )
 
     # Page 23 given as-is
+    # Note that a spiral can be formed from 3299 clockwise
+    # That spiral could have been built with the formula abs(3301 - primes[fib[i]])
     Matrix(
         [ 3258, 3222, 3152, 3038 ],
         [ 3278, 3299, 3298, 2838 ],
@@ -33,11 +35,4 @@ SQUARES = [
         [ 4516, 1206,  708, 1820 ],
     ),
 
-    # Page 23 but substructing from 3301
-    Matrix(
-        [   43,    79,  149,  263 ],
-        [   23,     2,    3,  463 ],
-        [   13,     7,    5,  829 ],
-        [ -1215, 2095, 2593, 1481 ]
-    )
 ]

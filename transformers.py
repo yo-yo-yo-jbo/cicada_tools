@@ -19,13 +19,8 @@ class MathUtils(object):
             Finds the next prime number.
         """
 
-        # Just iterate
-        if prev_prime == 2:
-            return 3
-        candidate = prev_prime + 2
-        while not sympy.isprime(candidate):
-            candidate += 2
-        return candidate
+        # Return the next prime
+        return sympy.nextprime(prev_prime)
 
     @staticmethod
     def mobius(n):
