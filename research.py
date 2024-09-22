@@ -594,6 +594,32 @@ class Attempts(object):
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         print(f'PAGE {page_index} (Seq={seq} with 1033 function, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
 
+    @staticmethod
+    def page15_function_primes_keystream(word_threshold=2, ioc_threshold=1.2):
+        """
+            Uses abs(3301-p) on all primes p as a keystream.
+            This function was concluded from the Page 15 square matrix.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
+
+        # Iterate all pages
+        page_index = -1
+        for page in tqdm(get_unsolved_pages()):
+
+            # Increase page index
+            page_index += 1
+
+            # Try adding or substructing
+            for add_option in (False, True):
+
+                # Try on primes 
+                pt = ProcessedText(page)
+                Page15FuncPrimesTransformer(add=add_option).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+
 def research_menu():
     """
         Research menu.
@@ -654,6 +680,7 @@ def research_menu():
             attempts[method_index - 1][1].__func__()
             started_run = False
             finished_run = True
+            screen.press_enter()
         except KeyboardInterrupt:
             stopped_by_user = started_run
             screen.press_enter()

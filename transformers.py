@@ -40,6 +40,18 @@ class MathUtils(object):
         # Use sympy
         return sympy.totient(n)
 
+    @staticmethod
+    def gen_primes():
+        """
+            A generator for primes.
+        """
+
+        # Generate primes forever
+        curr_prime = 2
+        while True:
+            yield curr_prime
+            curr_prime = MathUtils.find_next_prime(curr_prime)
+
 class TransformerBase(ABC):
     """
         Base class for transformers.
@@ -443,6 +455,20 @@ class KeystreamTransformer(TransformerBase):
             processed_text.set_runes(result)
         except StopIteration:
             return
+
+class Page15FuncPrimesTransformer(KeystreamTransformer):
+    """
+        Treats abs(3301 - p) for all primes p as a keystream transformer.
+        That function was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
+    """
+
+    def __init__(self, add=True, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices)
 
 class UnsolvedTransformer(TransformerBase):
     """
