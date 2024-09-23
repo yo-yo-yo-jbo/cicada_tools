@@ -697,6 +697,35 @@ class Attempts(object):
                     screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                     screen.press_enter()
 
+    @staticmethod
+    def hill_cipher():
+        """
+            Tries to perform Hill Cipher with all squares.
+        """
+
+        # Build a new square from the sum of first two squares
+        squares = SQUARES[:]
+        squares.append(squares[0] + squares[1])
+
+        # Iterate all pages
+        page_index = -1
+        for page in get_unsolved_pages():
+
+            # Increase page index
+            page_index += 1
+
+            # Iterate all squares
+            square_index = -1
+            for square in squares:
+                
+                # Use Hill ciphjer
+                square_index += 1
+                pt = ProcessedText(page)
+                HillCipherTransformer(matrix=square).transform(pt)
+                print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
+                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                screen.press_enter()
+
 def research_menu():
     """
         Research menu.

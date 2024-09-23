@@ -619,6 +619,44 @@ class SpiralSquareTransformer(KeystreamTransformer):
         # Call super
         super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices)
 
+class HillCipherTransformer(TransformerBase):
+    """
+        Runs Hill Cipher on runes.
+    """
+
+    def __init__(self, matrix, padding='ᚠ'):
+        """
+            Creates an instance.
+        """
+
+        # Saves the matrix and the padding
+        self._matrix = matrix
+        assert len(padding) == 1, Exception('Invalid padding length')
+        assert padding[0] in RUNES, Exception('Padding must be a rune')
+        self._padding = padding[0]
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+        
+        # Iterate runes in groups
+        result = []
+        runes = processed_text.get_runes()
+        for i in range(0, len(runes), self._matrix.rows):
+
+            # Get the chunk and optionally extend with padding
+            chunk = (''.join(runes[i:i+self._matrix.rows]) + (self._padding * self._matrix.rows))[:self._matrix.rows]
+            chunk = [ RUNES.index(rune) for rune in chunk ]
+
+            # Work on transposed matrix
+            new_chunk = self._matrix.inv_mod(len(RUNES)) * sympy.Matrix(chunk)
+            new_chunk = [ RUNES[num % len(RUNES)] for num in new_chunk ]
+            result.extend(new_chunk)
+
+        # Set the result
+        processed_text.set_runes(result[:len(runes)])
+
 class UnsolvedTransformer(TransformerBase):
     """
         Marks the processed text as unsolved.
