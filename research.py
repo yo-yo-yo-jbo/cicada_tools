@@ -360,16 +360,10 @@ class Attempts(object):
 
         # Get words and show them
         words = get_rune_wordlist()
-        sep_len = 4 + max([ len(word) for word in words ])
         word_index = 0
         for word in words:
             word_index += 1
-            line = f'[{word_index} / {len(words)}]: word'
-            line += ' ' * (sep_len - len(line))
-            line += runes_to_latin(word)
-            line += ' ' * (sep_len * 2 - len(line))
-            line += str(len(word))
-            screen.print_solved_text(line)
+            screen.print_solved_text(f'[{word_index} / {len(words)}]: {len(word)}\t\t{word}\t\t{runes_to_latin(word)}')
             screen.press_enter()
 
     @staticmethod
