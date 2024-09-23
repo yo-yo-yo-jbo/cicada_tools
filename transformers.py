@@ -484,7 +484,7 @@ class ReverseTransformer(TransformerBase):
 class KeystreamTransformer(TransformerBase):
     """
         Uses a keystream to either add or substruct from each rune value.
-        Keystream is assumed to be infinite or sufficiently long.
+        Keystream is assumed to be infinite or sufficiently long - but generally will give up and only transform the first N runes if finite.
     """
 
     def __init__(self, add=True, keystream=None, interrupt_indices=set()):
