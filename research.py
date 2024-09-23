@@ -487,12 +487,15 @@ class Attempts(object):
     def gp_sum_keystream(word_threshold=6, ioc_threshold=1.8):
         """
             Attempts to use the GP-sum of each solved page words as a keystream.
+            Also attempts to use the GP-sums of entire solved LP1 as a keystream.
         """
 
         # Get an extended wordlist for a measurement
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Build dictionary mapping solved pages to GP-sum based streams
+        lp1_keystream = []
+        had_unsolved = False
         streams = []
         result = set()
         for page in PAGES:
@@ -503,12 +506,20 @@ class Attempts(object):
 
             # Skip unsolved pages
             if processed_text.is_unsolved():
+                had_unsolved = True
                 continue
 
             # Get the stream
             stream = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
             if len(stream) > 0:
                 streams.append(stream)
+
+            # Append stream to the LP1 keystream
+            if not had_unsolved:
+                lp1_keystream += stream
+
+        # Add LP1 keystream to the front of the streams
+        streams.insert(0, lp1_keystream)
 
         # Iterate all unsolved pages and attempt to use each stream on each page
         page_index = -1
