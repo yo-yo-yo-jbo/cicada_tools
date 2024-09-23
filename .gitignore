@@ -4,5 +4,8 @@ __pycache__
 # Ignore VIM swap files
 *.swp
 
+# Ignore macOS .DS_Store
+.DS_Store
+
 # Ignore OEIS
 oeis.txt

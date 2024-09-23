@@ -102,9 +102,16 @@ class Attempts(object):
             # Decrypt
             page[1].transform(processed_text)
 
-            # Present and wait for input
+            # Present page contents
             print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
             screen.print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
+
+            # Show GP sums of solved pages
+            if not processed_text.is_unsolved():
+                gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
+                print(f'\n\nGP-sums: {gp_sum_string}\n')
+
+            # Wait for further input
             screen.press_enter()
             page_index += 1
 
@@ -593,8 +600,8 @@ def research_menu():
             except KeyboardInterrupt:
                 pass
             continue
-        #except Exception as ex:
-        #    last_error = f'ERROR: {ex}'
+        except Exception as ex:
+            last_error = f'ERROR: {ex}'
 
 if __name__ == '__main__':
     research_menu()
