@@ -1,4 +1,4 @@
-from core import RUNES
+from core import RuneUtils
 from abc import ABC
 from abc import abstractmethod
 import sympy
@@ -143,7 +143,7 @@ class ShiftTransformer(TransformerBase):
         """
 
         # Saves the shift value
-        self._shift = shift % len(RUNES)
+        self._shift = shift % RuneUtils.size() 
 
     def transform(self, processed_text):
         """
@@ -151,7 +151,7 @@ class ShiftTransformer(TransformerBase):
         """
 
         # Performs the shift transformation
-        processed_text.set_runes([ RUNES[(RUNES.index(rune) + self._shift) % len(RUNES)] for rune in processed_text.get_runes() ])
+        processed_text.set_runes([ RuneUtils.rune_at(RuneUtils.get_rune_index(rune) + self._shift) for rune in processed_text.get_runes() ])
 
 class AtbashTransformer(TransformerBase):
     """
@@ -164,7 +164,7 @@ class AtbashTransformer(TransformerBase):
         """
 
         # Performs Atbash transformation
-        processed_text.set_runes([ RUNES[len(RUNES) - RUNES.index(rune) - 1] for rune in processed_text.get_runes() ])
+        processed_text.set_runes([ RuneUtils.rune_at(RuneUtils.size() - RuneUtils.get_rune_index(rune) - 1) for rune in processed_text.get_runes() ])
 
 class AutokeyTransformer(TransformerBase):
     """
@@ -181,7 +181,7 @@ class AutokeyTransformer(TransformerBase):
 
         # Save the key indices
         assert len(key) > 0, Exception('Empty key')
-        self._key_indices = [ RUNES.index(rune) for rune in key ]
+        self._key_indices = [ RuneUtils.get_rune_index(rune) for rune in key ]
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -216,28 +216,28 @@ class AutokeyTransformer(TransformerBase):
 
             # Treat mobius value of 0 just like an interrupt index
             if rune_index in self._interrupt_indices or mob_value == 0:
-                new_index = RUNES.index(rune)
+                new_index = RuneUtils.get_rune_index(rune)
             else:
-                new_index = (RUNES.index(rune) - running_key_indices[key_index]) % len(RUNES)
+                new_index = (RuneUtils.get_runeindex(rune) - running_key_indices[key_index]) % RuneUtils.size()
                 key_index += 1
 
                 # Extend the keystream from either plaintext or ciphertext
                 if extend_to_plaintext:
                     running_key_indices.append(new_index)
                 else:
-                    running_key_indices.append(RUNES.index(ciphertext[ciphertext_extension_index]))
+                    running_key_indices.append(RuneUtils.get_rune_index(ciphertext[ciphertext_extension_index]))
                     ciphertext_extension_index += 1
 
                 # Using GP mode we extend the running keystream with the GP value of the lastly added value
                 if self._use_gp:
-                    running_key_indices[-1] = GP_PRIMES[running_key_indices[-1]] % len(RUNES)
+                    running_key_indices[-1] = GP_PRIMES[running_key_indices[-1]] % RuneUtils.size()
 
                 # Update whether to extend the keystream to plaintext if needed
                 if self._mode in (AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT):
                     extend_to_plaintext = not extend_to_plaintext
 
             # Add the new rune
-            result.append(RUNES[new_index])
+            result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
         processed_text.set_runes(result)
@@ -308,7 +308,7 @@ class VigenereTransformer(TransformerBase):
 
         # Save the key indices
         assert len(key) > 0, Exception('Empty key')
-        self._key_indices = [ RUNES.index(rune) for rune in key ]
+        self._key_indices = [ RuneUtils.get_rune_index(rune) for rune in key ]
         assert len([ i for i in self._key_indices if i < 0 ]) == 0, Exception('Invalid key')
 
         # Save the interrupters
@@ -326,11 +326,11 @@ class VigenereTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RUNES.index(rune)
+                new_index = RuneUtils.get_rune_index(rune)
             else:
-                new_index = (RUNES.index(rune) - self._key_indices[key_index]) % len(RUNES)
+                new_index = (RuneUtils.get_rune_index(rune) - self._key_indices[key_index]) % RuneUtils.size()
                 key_index = (key_index + 1) % len(self._key_indices)
-            result.append(RUNES[new_index])
+            result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
         processed_text.set_runes(result)
@@ -365,16 +365,16 @@ class TotientPrimeTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RUNES.index(rune)
+                new_index = RuneUtils.get_rune_index(rune)
             else:
                 val = curr_prime
                 for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1
-                new_index = (RUNES.index(rune) + val) % len(RUNES)
+                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
                 curr_prime = MathUtils.find_next_prime(curr_prime)
-            result.append(RUNES[new_index])
+            result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
         processed_text.set_runes(result)
@@ -409,16 +409,16 @@ class TotientFibTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RUNES.index(rune)
+                new_index = RuneUtils.get_rune_index(rune)
             else:
                 val = fib_a
                 for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1
-                new_index = (RUNES.index(rune) + val) % len(RUNES)
+                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
                 fib_a, fib_b = fib_b, fib_a + fib_b
-            result.append(RUNES[new_index])
+            result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
         processed_text.set_runes(result)
@@ -452,18 +452,18 @@ class MobiusTotientPrimeTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RUNES.index(rune)
+                new_index = RuneUtils.get_rune_index(rune)
             else:
                 tot = MathUtils.totient(curr_prime)
                 if self._use_prime_as_base:
-                    val = (MathUtils.mobius(tot) * curr_prime) % len(RUNES)
+                    val = (MathUtils.mobius(tot) * curr_prime) % RuneUtils.size()
                 else:
-                    val = (MathUtils.mobius(tot) * tot) % len(RUNES)
+                    val = (MathUtils.mobius(tot) * tot) % RuneUtils.size()
                 if not self._add:
                     val *= -1
-                new_index = (RUNES.index(rune) + val) % len(RUNES)
+                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
                 curr_prime = MathUtils.find_next_prime(curr_prime)
-            result.append(RUNES[new_index])
+            result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
         processed_text.set_runes(result)
@@ -517,7 +517,7 @@ class KeystreamTransformer(TransformerBase):
                     val = next(self._keystream)
                     if not self._add:
                         val *= -1
-                    result.append(RUNES[(RUNES.index(rune) + val) % len(RUNES)])
+                    result.append(RuneUtils.rune_at((RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()))
 
             # Set the result
             processed_text.set_runes(result)
@@ -560,7 +560,7 @@ class Page15FuncRuneTransformer(TransformerBase):
         """
 
         # Get the fibo-primes to cover all runes
-        fibo_primes = list(MathUtils.get_fibo_primes())[:len(RUNES)]
+        fibo_primes = list(MathUtils.get_fibo_primes())[:RuneUtils.size()]
 
         # Runs the keystream
         result = []
@@ -571,8 +571,8 @@ class Page15FuncRuneTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 result.append(rune)
             else:
-                val = abs(3301 - fibo_primes[RUNES.index(rune)])
-                result.append(RUNES[val % len(RUNES)])
+                val = abs(3301 - fibo_primes[RuneUtils.get_rune_index(rune)])
+                result.append(RuneUtils.rune_at(val % RuneUtils.size()))
 
         # Set the result
         processed_text.set_runes(result)
@@ -632,7 +632,7 @@ class HillCipherTransformer(TransformerBase):
         # Saves the matrix and the padding
         self._matrix = matrix
         assert len(padding) == 1, Exception('Invalid padding length')
-        assert padding[0] in RUNES, Exception('Padding must be a rune')
+        assert RuneUtils.is_rune(padding[0]), Exception(f'Padding must be a rune: {padding}')
         self._padding = padding[0]
 
     def transform(self, processed_text):
@@ -647,11 +647,11 @@ class HillCipherTransformer(TransformerBase):
 
             # Get the chunk and optionally extend with padding
             chunk = (''.join(runes[i:i+self._matrix.rows]) + (self._padding * self._matrix.rows))[:self._matrix.rows]
-            chunk = [ RUNES.index(rune) for rune in chunk ]
+            chunk = [ RuneUtils.get_rune_index(rune) for rune in chunk ]
 
             # Work on transposed matrix
-            new_chunk = self._matrix.inv_mod(len(RUNES)) * sympy.Matrix(chunk)
-            new_chunk = [ RUNES[num % len(RUNES)] for num in new_chunk ]
+            new_chunk = self._matrix.inv_mod(RuneUtils.size()) * sympy.Matrix(chunk)
+            new_chunk = [ RuneUtils.rune_at(num % RuneUtils.size()) for num in new_chunk ]
             result.extend(new_chunk)
 
         # Set the result

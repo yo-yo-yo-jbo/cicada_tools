@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+from core import *
+
 import os
 import sys
 import string
 import base64
-from core import RUNES
 
 # Colors
 RED, GREEN, BLUE, WHITE, YELLOW, RESET_COLORS = '', '', '', '', '', ''
@@ -97,7 +98,7 @@ def print_solved_text(text):
     s = s.replace('[!!!RESET_COLORS!!!]', RESET_COLORS).replace('[!!!BLUE!!!]', BLUE)
 
     # Color runes
-    for rune in RUNES:
+    for rune in RuneUtils.iter_runes():
         s = s.replace(rune, f'{RED}{rune}{RESET_COLORS}')
     
     # Color uppercase
