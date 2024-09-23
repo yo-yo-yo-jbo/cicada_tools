@@ -4,6 +4,7 @@ from core import RUNES
 from core import LATIN
 from core import ProcessedText
 from core import latin_to_runes
+from core import runes_to_gp_sum
 from squares import SQUARES
 import secrets
 from transformers import *
@@ -712,13 +713,60 @@ class Attempts(object):
             square_index = -1
             for square in squares:
                 
-                # Use Hill ciphjer
+                # Use Hill cipher
                 square_index += 1
                 pt = ProcessedText(page)
                 HillCipherTransformer(matrix=square).transform(pt)
                 print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
                 screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
                 screen.press_enter()
+
+    @staticmethod
+    def gp_sum_keystream(word_threshold=6, ioc_threshold=1.8):
+        """
+            Attempts to use the GP-sum of each solved page words as a keystream.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = get_rune_wordlist(True)
+
+        # Build dictionary mapping solved pages to GP-sum based streams
+        streams = []
+        result = set()
+        for page in PAGES:
+
+            # Process all text
+            processed_text = ProcessedText(page[0])
+            page[1].transform(processed_text)
+
+            # Skip unsolved pages
+            if processed_text.is_unsolved():
+                continue
+
+            # Get the stream
+            stream = [ runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
+            if len(stream) > 0:
+                streams.append(stream)
+
+        # Iterate all unsolved pages and attempt to use each stream on each page
+        page_index = -1
+        for page in tqdm(get_unsolved_pages()):
+
+            # Increase page index
+            page_index += 1
+
+            # Iterate all streams 
+            stream_index = -1
+            for stream in streams:
+                
+                # Use a keystream
+                stream_index += 1
+                for add_option in (False, True):
+                    pt = ProcessedText(page)
+                    KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'PAGE {page_index} (stream={stream_index}, IOC={pt.get_rune_ioc()}):\n\n')
+                        screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
 
 def research_menu():
     """

@@ -6,13 +6,13 @@ LATIN = [ 'F', 'V', 'TH', 'O', 'R', 'C', 'G', 'W', 'H', 'N', 'I', 'J', 'EO', 'P'
 PUNCT = { '.': '.\n', '-': ' ', '%': '\n\n', '/': '', '&' : '\n', '\n' : '' }
 GP_PRIMES = [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109 ]
 
-def runes_to_gp_primes(runes):
+def runes_to_gp_sum(runes):
     """
-        Translates runes to primes.
+        Translates runes to GP-sum.
     """
 
     # Only take runes and translate
-    return [ GP_PRIMES[RUNES.index(rune)] for rune in runes if rune in RUNES ]
+    return sum([ GP_PRIMES[RUNES.index(rune)] for rune in runes if rune in RUNES ])
 
 def latin_to_runes(latin):
     """
