@@ -613,13 +613,12 @@ class Primes11IndicesApartTransformer(KeystreamTransformer):
         That corresponds to primes that are 11-indices apart, and can be turned into a keystream.
     """
 
-    def __init__(self, start_from_107=True, add=True, interrupt_indices=set()):
+    def __init__(self, start_value=107, add=True, interrupt_indices=set()):
         """
             Creates an instance.
         """
 
         # Call super
-        start_value = 107 if start_from_107 else 13
         super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=11), interrupt_indices=interrupt_indices)
 
 class HillCipherTransformer(TransformerBase):

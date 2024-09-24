@@ -610,24 +610,24 @@ class Attempts(object):
         # Iterate all sections
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
 
-            # Either start from 107 or not
-            for start_107_option in (False, True):
+            # Start values could be either 107 (naturally from LP1), 13 (lowest prime to start from assuming 107 is in sequence) and 2 (first prime)
+            for start_value in (107, 13, 2):
                 
                 # Either adding or substructing
                 for add_option in (False, True):
 
                     # Use the prime sequence
                     pt = ProcessedText(section.get_all_text())
-                    Primes11IndicesApartTransformer(add=add_option, start_from_107=start_107_option).transform(pt)
+                    Primes11IndicesApartTransformer(add=add_option, start_value=start_value).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}):')
+                        print(f'Primes 11 apart (start_value={start_value}, add={add_option}):')
                         ResearchUtils.print_section_data(section, pt)
                         screen.press_enter()
 
                     # Try Atbash
                     AtbashTransformer().transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'Primes 11 apart with Atbash (start_107_option={start_107_option}, add={add_option}):')
+                        print(f'Primes 11 apart with Atbash (start_value={start_value}, add={add_option}):')
                         ResearchUtils.print_section_data(section, pt)
                         screen.press_enter()
 
@@ -635,10 +635,10 @@ class Attempts(object):
                     AtbashTransformer().transform(pt)
 
                     # Try shifting
-                    for shift_value in range(1, 29):
+                    for shift_value in range(1, RuneUtils.size()):
                         ShiftTransformer(shift=1).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}, shift={shift_value}):')
+                            print(f'Primes 11 apart (start_value={start_value}, add={add_option}, shift={shift_value}):')
                             ResearchUtils.print_section_data(section, pt)
                             screen.press_enter()
 
