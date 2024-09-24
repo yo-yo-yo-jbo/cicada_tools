@@ -659,6 +659,28 @@ class HillCipherTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result[:len(runes)])
 
+class ModInvTransformer(TransformerBase):
+    """
+        Performs modular inverse of each rune.
+    """
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Iterate runes
+        result = []
+        for rune in processed_text.get_runes():
+            
+            # Performs modular inverse
+            curr_index = RuneUtils.get_rune_index(rune)
+            new_index = pow(curr_index, -1, RuneUtils.size()) if curr_index != 0 else 0
+            result.append(RuneUtils.rune_at(new_index))
+
+        # Set the result
+        processed_text.set_runes(result[:len(runes)])
+
 class UnsolvedTransformer(TransformerBase):
     """
         Marks the processed text as unsolved.
