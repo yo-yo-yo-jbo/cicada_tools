@@ -5,6 +5,8 @@ from secrets import *
 from transformers import *
 from liber_primus import LiberPrimus
 
+import subprocess
+import platform
 import os
 import itertools
 import sys
@@ -113,6 +115,20 @@ class ResearchUtils(object):
         if len(page_numbers_string) > 0:
             print(f'\n\nPages: {page_numbers_string}')
 
+    @staticmethod
+    def open_path(path):
+        """
+            Opens the path.
+        """
+
+        # Act differently based on platform
+        if platform.system() == 'Darwin':
+            subprocess.call(('open', path))
+        elif platform.system() == 'Windows':
+            os.startfile(path)
+        else:
+            subprocess.call(('xdg-open', path))
+
 class Attempts(object):
     """
         Attempts made.
@@ -149,8 +165,26 @@ class Attempts(object):
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
                 print(f'\n\nGP-sums: {gp_sum_string}\n')
 
-            # Wait for further input
-            screen.press_enter()
+            # Wait for further input if filename is available
+            image_paths = [ page.filepath for page in section.pages if page.filepath is not None ]
+            if len(image_paths) > 0:
+
+                # Ask for input and present if thus selected
+                print('Show images? [', end='')
+                screen.print_yellow('Y', end='')
+                print('/', end='')
+                screen.print_yellow('N', end='')
+                print(']? (default=', end='')
+                screen.print_yellow('N', end='')
+                choice = input(')? ')
+                if choice.strip().upper() == 'Y':
+                    for image_path in image_paths:
+                        ResearchUtils.open_path(image_path)
+                    screen.press_enter()
+                else:
+                    screen.clear()
+            else:
+                screen.press_enter()
 
     @staticmethod
     def show_all_solved_words():
