@@ -75,7 +75,7 @@ def clear():
     # Print the logo as a header
     print_logo()
 
-def press_enter():
+def press_enter(clear_screen=True):
     """
         Waits for an ENTER keypress.
     """
@@ -84,7 +84,8 @@ def press_enter():
     print('Press ', end='')
     print_yellow('ENTER', end='')
     _ = input(' to continue.')
-    clear()
+    if clear_screen:
+        clear()
 
 def print_solved_text(text):
     """
