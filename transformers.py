@@ -218,7 +218,7 @@ class AutokeyTransformer(TransformerBase):
             if rune_index in self._interrupt_indices or mob_value == 0:
                 new_index = RuneUtils.get_rune_index(rune)
             else:
-                new_index = (RuneUtils.get_runeindex(rune) - running_key_indices[key_index]) % RuneUtils.size()
+                new_index = (RuneUtils.get_rune_index(rune) - running_key_indices[key_index]) % RuneUtils.size()
                 key_index += 1
 
                 # Extend the keystream from either plaintext or ciphertext

@@ -244,8 +244,8 @@ class Attempts(object):
     @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=6, ioc_threshold=1.8, min_key_len=6):
         """
-            Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each page.
-            Uses keys derived from all decrypted pages, with and without replacing all occurrences of first character with "F".
+            Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
+            Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
             Also tries reversing all keys.
             Uses all supported modes of Autokey: plaintext, cipehrtext or alternating (starting from either plaintext or ciphertext, or using the Mobius function).
         """
@@ -261,22 +261,18 @@ class Attempts(object):
         keys = [ k for k in keys if len(k) > min_key_len ]
         keys = set(keys)
 
-        # Iterate all pages
-        page_index = -1
-        for page in ResearchUtils.get_unsolved_pages():
-
-            # Increase page index
-            page_index += 1
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all keys
-            for key in tqdm(keys, desc=f'Page {page_index}'):
+            for key in tqdm(keys, desc=f'Section {section.name}'):
               
                 # Attempt Vigenere
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 VigenereTransformer(key=key).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'PAGE {page_index} (Vigenere Key={key}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
-                    screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                    print(f'Vigenere Key="{key}"')
+                    ResearchUtils.print_section_data(section, pt)
 
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
@@ -285,25 +281,26 @@ class Attempts(object):
                     for use_gp in (False, True):
 
                         # Apply Autokey
-                        pt = ProcessedText(page)
+                        pt = ProcessedText(section.get_all_text())
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'PAGE {page_index} (Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
-                            screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                            print(f'Autokey key="{key}" mode={mode}')
+                            ResearchUtils.print_section_data(section, pt)
 
                         # Reverse
                         ReverseTransformer().transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'PAGE {page_index} (Autokey Key={key}, mode={mode}, reversed, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
-                            screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                            print(f'Autokey key="{key}" mode={mode} and then reversing')
+                            ResearchUtils.print_section_data(section, pt)
 
                         # Start from reversing and then apply Autokey
-                        pt = ProcessedText(page)
+                        pt = ProcessedText(section.get_all_text())
                         ReverseTransformer().transform(pt)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'PAGE {page_index} (Reversed text Autokey Key={key}, mode={mode}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n')
-                            screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                            print(f'Autokey key="{key}" mode={mode} on reversed text')
+                            ResearchUtils.print_section_data(section, pt)
+
     @staticmethod
     def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
         """
