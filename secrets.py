@@ -22,8 +22,8 @@ MISSING_PRIMES_2013 = [ int(k) for k in '''
    1153   1163   1171   1181   1187   1193   1201   1213   1217   1223
 '''.replace('\n', ' ').replace(' ', ',').split(',') if len(k) > 0 ]
 
-# Potentially base60 stream "Cuniform"
-CUNIFORM = [ c for c in '''
+# Potentially base60 stream "Cuneiform"
+CUNEIFORM = [ c for c in '''
 3N  3p  2l  36  1b  3v  26  33
 1W  49  2a  3g  47  04  33  3W
 21  3M  0F  0X  1g  2H  0x  1R
