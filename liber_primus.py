@@ -53,7 +53,9 @@ class LiberPrimus(object):
                     nice_name = ' '.join(nice_name.split('_')[1:])
                 section = Section(name=nice_name.title(), title=section_data['title'], transformers=section_transformers)
                 for page_data in section_data['pages']:
-                    section.add_page(Page(section=section, number=page_data.get('number', None), text=page_data['text']))
+                    page_filename = page_data.get('filename', None)
+                    page_filepath = os.path.join(sections_base_path, section_name, page_filename) if page_filename is not None else None
+                    section.add_page(Page(section=section, number=page_data.get('number', None), text=page_data['text'], filepath=page_filepath))
 
                 # Append to the setions
                 cls._SECTIONS.append(section)
@@ -66,18 +68,20 @@ class Page(object):
         Represents a book page.
     """
 
-    def __init__(self, section, text, number=None):
+    def __init__(self, section, text, number=None, filepath=None):
         """
             Creates an instance.
         """
 
         # Validations
         assert number is None or (isinstance(number, int) and number >= 0), Exception(f'Invalid number: {number}')
+        assert filepath is None or os.path.isfile(filepath), Exception(f'Nonexistent file path: {filepath}')
 
         # Save members
         self.section = section
         self.text = text
         self.number = number
+        self.filepath = filepath
 
 class Section(object):
     """
