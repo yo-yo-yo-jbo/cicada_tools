@@ -662,6 +662,29 @@ class Attempts(object):
                             ResearchUtils.print_section_data(section, pt)
                             screen.press_enter()
 
+    @staticmethod
+    def use_cuneiform_as_keystream():
+        """
+            Uses the Cuneiform as a keystream in base 60.
+        """
+
+        # Translate Cuneiform to base60
+        digits = string.digits + string.ascii_uppercase + string.ascii_lowercase[:-2]
+        keystream = [ digits.index(i[0]) * 60 + digits.index(i[1]) for i in CUNEIFORM ]
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Either add or substruct
+            for add_option in (False, True):
+
+                # Try decryption
+                pt = ProcessedText(section.get_all_text())
+                KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
+                print(f'Base60 Cunieform keystream (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
+                screen.press_enter()
+
 def research_menu():
     """
         Research menu.
