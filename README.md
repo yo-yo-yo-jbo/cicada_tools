@@ -11,7 +11,7 @@ Based on the encrypted payload, I have a few assumptions:
 3. The cipher probably treats two consecutive letters differently (e.g. like `Playfair` cipher does). This is a conclusion from the low distribution of doublets in the entire `LP2`.
 
 ## Attempts made
-All attempts are under the `Attempts` class, in `research.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
+All attempts are under the `Attempts` class, in `main.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
 That's a great programmatic way of documenting all attempts.
 
 ## Coding and classes
@@ -32,7 +32,7 @@ That class keeps a mutation of all runes while maintaining all punctuation and n
 ### transformers.py
 Contains `Transformer` classes, which transform `ProcessedText` instances runes by calling `transform` on them.
 
-### research.py
+### main.py
 Considered to be the "main" research-based module. Just run it.
 
 ### squares.py
