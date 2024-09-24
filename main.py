@@ -597,6 +597,29 @@ class Attempts(object):
             ResearchUtils.print_section_data(section, pt)
             screen.press_enter()
 
+    @staticmethod
+    def primes_11_indices_apart():
+        """
+            Performs a keystream manipulation on runes based on prime numbers that are 11 indices apart.
+            This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
+        """
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Either start from 107 or not
+            for start_107_option in (False, True):
+                
+                # Either adding or substructing
+                for add_option in (False, True):
+
+                    # Use the prime sequence
+                    pt = ProcessedText(section.get_all_text())
+                    Primes11IndicesApartTransformer(add=add_option, start_from_107=start_107_option).transform(pt)
+                    print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}):')
+                    ResearchUtils.print_section_data(section, pt)
+                    screen.press_enter()
+
 def research_menu():
     """
         Research menu.

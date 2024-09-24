@@ -67,16 +67,18 @@ class MathUtils(object):
         return sympy.sqrt(num).is_Integer
 
     @staticmethod
-    def gen_primes():
+    def gen_primes(first_value=2, indices_apart=1):
         """
             A generator for primes.
         """
 
         # Generate primes forever
-        curr_prime = 2
+        assert indices_apart > 0, Exception(f'Invalid argument for indices apart between primes: {indices_apart}')
+        curr_prime = first_value
         while True:
             yield curr_prime
-            curr_prime = MathUtils.find_next_prime(curr_prime)
+            for i in range(indices_apart):
+                curr_prime = MathUtils.find_next_prime(curr_prime)
 
     @classmethod
     def get_fibo_primes(cls):
@@ -605,6 +607,21 @@ class SpiralSquareKeystreamTransformer(KeystreamTransformer):
         # Call super
         super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices)
 
+class Primes11IndicesApartTransformer(KeystreamTransformer):
+    """
+        The first few pages of Liber Primus part 1 (solved pages) have page numbers that are 107, 167, 229.
+        That corresponds to primes that are 11-indices apart, and can be turned into a keystream.
+    """
+
+    def __init__(self, start_from_107=True, add=True, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        start_value = 107 if start_from_107 else 13
+        super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=11), interrupt_indices=interrupt_indices)
+
 class HillCipherTransformer(TransformerBase):
     """
         Runs Hill Cipher on runes.
@@ -655,26 +672,4 @@ class UnsolvedTransformer(TransformerBase):
 
         # Sets as unsolved
         processed_text.set_unsolved()
-
-class TransformerSequence(TransformerBase):
-    """
-        Builds a transformer sequence.
-    """
-
-    def __init__(self, *transformers):
-        """
-            Creates an instance.
-        """
-
-        # Save all transformers
-        self._transformers = transformers
-
-    def transform(self, processed_text):
-        """
-            transforms runes.
-        """
-
-        # Runs all transformers sequentially
-        for transformer in self._transformers:
-            transformer.transform(processed_text)
 
