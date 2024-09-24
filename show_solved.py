@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from research import Attempts
+from main import Attempts
 import screen
 
 def main():

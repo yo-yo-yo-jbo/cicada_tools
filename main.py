@@ -598,7 +598,7 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def primes_11_indices_apart(word_threshold=6, ioc_threshold=1.8):
+    def primes_11_indices_apart(word_threshold=4, ioc_threshold=1.8):
         """
             Performs a keystream manipulation on runes based on prime numbers that are 11 indices apart.
             This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
