@@ -77,7 +77,7 @@ class ResearchUtils(object):
 
             # Build cache
             if cls._ENGLISH_WORDS is None:
-                cls._ENGLISH_WORDS = []
+                cls._ENGLISH_WORDS = set() 
                 with open('english_wordlist.txt', 'r') as fp:
                     for word in fp.read().split('\n'):
                         runic = RuneUtils.english_to_runes(word)
@@ -85,7 +85,7 @@ class ResearchUtils(object):
                             cls._ENGLISH_WORDS.add(runic)
             
             # Use cache
-            result += cls._ENGLISH_WORDS
+            result = set.union(result, cls._ENGLISH_WORDS)
 
         # Return wordlist sorted by word length descending
         return sorted(result, key=len)[::-1]
@@ -621,8 +621,9 @@ def research_menu():
             except KeyboardInterrupt:
                 pass
             continue
-        except Exception as ex:
-            last_error = f'ERROR: {ex}'
+        #except Exception as ex:
+        #    last_error = f'ERROR: {ex}'
+        # TODO JBO
 
 if __name__ == '__main__':
     research_menu()
