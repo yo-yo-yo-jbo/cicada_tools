@@ -2,6 +2,14 @@
 Cicada 3301 Python utilities for decryption and research purposes.
 ![Screenshot](screenshot.png)
 
+## Installation
+Requires Python3, preferrably on Linux or macOS but Windows should work as well.
+
+```shell
+python3 -m pip install -r ./requirements.txt
+./main.py
+```
+
 ## Assumptions
 There is a lot of documented material on Cicada 3301 and the currently unsolved version 2 of their rune-based encrypted "book", AKA `Liber Primus` or `LP2` for short.
 
