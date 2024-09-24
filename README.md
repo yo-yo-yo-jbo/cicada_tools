@@ -17,8 +17,13 @@ That's a great programmatic way of documenting all attempts.
 ## Coding and classes
 The following section includes coding and useful classes:
 
-### pages.py
-Contains pages in Runes as an array called `PAGES`, with each page also containing its decryption `Transformer`, if available.
+### liber_primus.py
+Contains sections in Runes, parsed dynamically from the folder `liber_primus`. The structure of the `liber_primus` folder is quite intuitive:
+1. Each directory under `liber_primus` is taken into account (besides directories starting with a `.`) and is considered a `section`. They will be sorted alphabetically.
+2. By convension, we use `index_section_name` where `index` is a 3-digit Decimal number (increasing), including preceding zeros.
+3. Each such directory (section) has a `section.json` file, which contains the section `title` (if available), its `transformers` and `pages`.
+4. Each `transformer` will be translated into an actual `transformer` instance (see `transformers.py`), and applied in the mentioned order on the runes.
+5. Each `page` is expected to optionally have a corresponding `number`, as well as `text` (mandatory).
 
 ### core.py
 Contains utilities for translations, including the most important class, `ProcessedText`.  
@@ -40,14 +45,14 @@ Contains other secrets that are not squares, such as the [2013 missing primes](h
 ### screen.py
 Pretty-printing utilities. 
 
-## Non-technical remarks about solved pages
-* Page 1: Message from Cicada: "do not modify the book". This might be a hint that even spacing or graphics are meaningful. Also, an example of a simple linear modification of each rune by its value (`Atbash`).
-* Page 2: Vigenere cipher and use of previously seen words ("DIVINITY"), alongside `interrupters`. As of now, only the letter "F" is used for interrupters, which is meaningful when looking for cribs, as we can assume non-F ciphertext could not have been non-F plaintext.
-* Page 3: Message from Cicada: "the idea of GP-sums is important". A `GP-sum` is the process of taking the primes associated with each rune and summing them up to get a value for a runic word. The reference to "MOBIUS" is interesting in terms of the Mobius function. Significance to the Euler Totient function and primes, that are obviously strongly connected.
-* Page 4: Encryption methods from previously solved pages could be combined (`Atbash` alongside `Caesar cipher` in this case). Additionally, basic repeating phrases and language style could be inferred ("A COAN", "AN INSTRUCTION", the fact that Cicada prefers to write down number English names ("FOUR") rather than as a number).
-* Page 5: More potential keys to be used: "DIVINITY", "CIRCUMFERENCE", as well as the importance of the following three words combined in some manner: "CONSUMPTION", "PRESERVATION", "ADHERENCE". Also note the numbering appears after the English number name ("TWO").
-* Page 6: The notion that a key could be an English word with some occurences modified ("FIRFUMFERENFE").
-* Page 7: Currently *unknown*. Minor details: "KNOW THIS" is a potential crib.
-* Page 64: Cribbing (guessting plaintext is "AN END") is useful, walking backwards. The decryption could be a reference to the Totient function and primes as mentioned earlier, but a Totient function on a prime is simply that prime minus 1, so maybe the Totient function still needs to be used. The hash `36367763ab73783c7af284446c59466b4cd653239a311cb7116d4618dee09a8425893dc7500b464fdaf1672d7bef5e891c6e2274568926a49fb4f45132c2a8b4` is important.
-* Page 65: Repeating certain potential keys like "CIRCUMFERENCE" or "INSTAR".
+## Non-technical remarks about solved sections
+* `A WARNING`: Message from Cicada: "do not modify the book". This might be a hint that even spacing or graphics are meaningful. Also, an example of a simple linear modification of each rune by its value (`Atbash`).
+* `WELCOME`: Vigenere cipher and use of previously seen words ("DIVINITY"), alongside `interrupters`. As of now, only the letter "F" is used for interrupters, which is meaningful when looking for cribs, as we can assume non-F ciphertext could not have been non-F plaintext.
+* `SOME WISDOM`: Message from Cicada: "the idea of GP-sums is important". A `GP-sum` is the process of taking the primes associated with each rune and summing them up to get a value for a runic word. The reference to "MOBIUS" is interesting in terms of the Mobius function. Significance to the Euler Totient function and primes, that are obviously strongly connected.
+* `A KOAN`: Encryption methods from previously solved pages could be combined (`Atbash` alongside `Caesar cipher` in this case). Additionally, basic repeating phrases and language style could be inferred ("A COAN", "AN INSTRUCTION", the fact that Cicada prefers to write down number English names ("FOUR") rather than as a number).
+* `THE LOSS OF DIVINITY`: More potential keys to be used: "DIVINITY", "CIRCUMFERENCE", as well as the importance of the following three words combined in some manner: "CONSUMPTION", "PRESERVATION", "ADHERENCE". Also note the numbering appears after the English number name ("TWO").
+* `A KOAN` (2): The notion that a key could be an English word with some occurences modified ("FIRFUMFERENFE").
+* `AN INSTRUCTION`: Currently *unknown* but that square matrix was used back in 2013. Minor details: "KNOW THIS" is a potential crib.
+* `AN END` (page 64): Cribbing (guessting plaintext is "AN END") is useful, walking backwards. The decryption could be a reference to the Totient function and primes as mentioned earlier, but a Totient function on a prime is simply that prime minus 1, so maybe the Totient function still needs to be used. The hash `36367763ab73783c7af284446c59466b4cd653239a311cb7116d4618dee09a8425893dc7500b464fdaf1672d7bef5e891c6e2274568926a49fb4f45132c2a8b4` is important.
+* `Parable` (page 65): Repeating certain potential keys like "CIRCUMFERENCE" or "INSTAR".
 
