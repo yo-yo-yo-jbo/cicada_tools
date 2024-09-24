@@ -598,14 +598,17 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def primes_11_indices_apart():
+    def primes_11_indices_apart(word_threshold=6, ioc_threshold=1.8):
         """
             Performs a keystream manipulation on runes based on prime numbers that are 11 indices apart.
             This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
         """
 
+        # Get an extended wordlist for a measurement
+        wordlist = ResearchUtils.get_rune_wordlist(True)
+
         # Iterate all sections
-        for section in ResearchUtils.get_unsolved_sections():
+        for section in tqdm(ResearchUtils.get_unsolved_sections()):
 
             # Either start from 107 or not
             for start_107_option in (False, True):
@@ -616,9 +619,18 @@ class Attempts(object):
                     # Use the prime sequence
                     pt = ProcessedText(section.get_all_text())
                     Primes11IndicesApartTransformer(add=add_option, start_from_107=start_107_option).transform(pt)
-                    print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}):')
-                    ResearchUtils.print_section_data(section, pt)
-                    screen.press_enter()
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}):')
+                        ResearchUtils.print_section_data(section, pt)
+                        screen.press_enter()
+
+                    # Try shifting
+                    for shift_value in range(1, 29):
+                        ShiftTransformer(shift=1).transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}. shift={shift_value}):')
+                            ResearchUtils.print_section_data(section, pt)
+                            screen.press_enter()
 
 def research_menu():
     """
