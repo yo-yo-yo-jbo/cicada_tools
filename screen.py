@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from core import *
+from core import RuneUtils
 
 import os
 import sys
@@ -13,7 +13,7 @@ try:
     colorama.init()
     RED = colorama.Fore.RED + colorama.Style.BRIGHT
     GREEN = colorama.Fore.GREEN + colorama.Style.BRIGHT
-    BLUE = colorama.Fore.BLUE + colorama.Style.BRIGHT
+    BLUE = colorama.Fore.LIGHTBLUE_EX + colorama.Style.BRIGHT
     WHITE = colorama.Fore.WHITE + colorama.Style.BRIGHT
     YELLOW = colorama.Fore.YELLOW
     RESET_COLORS = colorama.Style.RESET_ALL
