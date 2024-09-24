@@ -588,13 +588,13 @@ class HillCipherTransformer(TransformerBase):
         Runs Hill Cipher on runes.
     """
 
-    def __init__(self, matrix, padding='ᚠ'):
+    def __init__(self, matrix, padding='ᚠ', inverse=True):
         """
             Creates an instance.
         """
 
         # Saves the matrix and the padding
-        self._matrix = matrix
+        self._matrix = matrix.inv_mod(RuneUtils.size()) if inverse else matrix
         assert len(padding) == 1, Exception('Invalid padding length')
         assert RuneUtils.is_rune(padding[0]), Exception(f'Padding must be a rune: {padding}')
         self._padding = padding[0]
@@ -614,7 +614,7 @@ class HillCipherTransformer(TransformerBase):
             chunk = [ RuneUtils.get_rune_index(rune) for rune in chunk ]
 
             # Work on transposed matrix
-            new_chunk = self._matrix.inv_mod(RuneUtils.size()) * sympy.Matrix(chunk)
+            new_chunk = self._matrix * sympy.Matrix(chunk)
             new_chunk = [ RuneUtils.rune_at(num % RuneUtils.size()) for num in new_chunk ]
             result.extend(new_chunk)
 

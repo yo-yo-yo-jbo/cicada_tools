@@ -430,12 +430,8 @@ class Attempts(object):
             Spiral pattern was concluded from page 15, walking right and going clockwise.
         """
 
-        # Iterate all pages
-        page_index = -1
-        for page in ResearchUtils.get_unsolved_pages():
-
-            # Increase page index
-            page_index += 1
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all squares
             square_index = -1
@@ -446,12 +442,12 @@ class Attempts(object):
                 for add_option in (False, True):
 
                     # Use as a keystream
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     SpiralSquareTransformer(matrix=square, add=add_option).transform(pt)
-                    print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
-                    screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                    print(f'Square {square_index} (add={add_option}):')
+                    ResearchUtils.print_section_data(section, pt)
                     screen.press_enter()
-
+    
     @staticmethod
     def hill_cipher():
         """
@@ -462,47 +458,47 @@ class Attempts(object):
         squares = SQUARES[:]
         squares.append(squares[0] + squares[1])
 
-        # Iterate all pages
-        page_index = -1
-        for page in ResearchUtils.get_unsolved_pages():
-
-            # Increase page index
-            page_index += 1
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all squares
             square_index = -1
             for square in squares:
                 
-                # Use Hill cipher
-                square_index += 1
-                pt = ProcessedText(page)
-                HillCipherTransformer(matrix=square).transform(pt)
-                print(f'PAGE {page_index} (Square={square_index}, IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
-                screen.press_enter()
+                # Either inverse or not
+                for inverse_option in (False, True):
+
+                    # Use Hill cipher
+                    square_index += 1
+                    pt = ProcessedText(section.get_all_text())
+                    HillCipherTransformer(matrix=square, inverse=inverse_option).transform(pt)
+                    print(f'Square {square_index} (inverse={inverse_option}):')
+                    ResearchUtils.print_section_data(section, pt)
+                    screen.press_enter()
 
     @staticmethod
     def gp_sum_keystream(word_threshold=6, ioc_threshold=1.8):
         """
-            Attempts to use the GP-sum of each solved page words as a keystream.
+            Attempts to use the GP-sum of each solved section words as a keystream.
             Also attempts to use the GP-sums of entire solved LP1 as a keystream.
         """
 
         # Get an extended wordlist for a measurement
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
-        # Build dictionary mapping solved pages to GP-sum based streams
+        # Build dictionary mapping solved sections to GP-sum based streams
         lp1_keystream = []
         had_unsolved = False
         streams = []
         result = set()
-        for page in PAGES:
+        for section in LiberPrimus.get_all_sections():
 
             # Process all text
-            processed_text = ProcessedText(page[0])
-            page[1].transform(processed_text)
-
-            # Skip unsolved pages
+            processed_text = ProcessedText(section.get_all_text())
+            for transformer in section.transformers:
+                transformer.transform(processed_text)
+            
+            # Skip unsolved sections
             if processed_text.is_unsolved():
                 had_unsolved = True
                 continue
@@ -519,12 +515,8 @@ class Attempts(object):
         # Add LP1 keystream to the front of the streams
         streams.insert(0, lp1_keystream)
 
-        # Iterate all unsolved pages and attempt to use each stream on each page
-        page_index = -1
-        for page in tqdm(ResearchUtils.get_unsolved_pages()):
-
-            # Increase page index
-            page_index += 1
+        # Iterate all unsolved sections and attempt to use each stream on each section
+        for section in tqdm(ResearchUtils.get_unsolved_sections()):
 
             # Iterate all streams 
             stream_index = -1
@@ -533,11 +525,12 @@ class Attempts(object):
                 # Use a keystream
                 stream_index += 1
                 for add_option in (False, True):
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (stream={stream_index}, IOC={pt.get_rune_ioc()}):\n\n')
-                        screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                        print(f'Stream {stream_index} (add={add_option}):')
+                        ResearchUtils.print_section_data(section, pt)
+                        screen.press_enter()
 
 def research_menu():
     """
