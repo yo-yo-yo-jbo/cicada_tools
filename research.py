@@ -304,7 +304,7 @@ class Attempts(object):
     @staticmethod
     def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
         """
-            Tries all OEIS sequences on each page, using them as keystreams.
+            Tries all OEIS sequences on each section, using them as keystreams.
         """
 
         # Get an extended wordlist for a measurement
@@ -353,28 +353,27 @@ class Attempts(object):
         # Try all sequences
         for seq in tqdm(sequences):
             
-            # Iterate all pages
-            page_index = -1
-            for page in ResearchUtils.get_unsolved_pages():
-
-                # Increase page index
-                page_index += 1
+            # Iterate all sections 
+            for section in ResearchUtils.get_unsolved_sections():
 
                 # Try adding or substructing
                 for add_option in (False, True):
 
                     # Try sequence as-is
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     KeystreamTransformer(keystream=iter(sequences[seq]), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (Seq={seq}, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        print(f'OEIS sequence {seq}')
+                        ResearchUtils.print_section_data(section, pt)
 
                     # Try a special function on the sequence which comes from the Cicada page 15 spiral
                     pt = ProcessedText(page)
                     func_seq = [ abs(3301 - elem) for elem in sequences[seq] ]
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (Seq={seq} with 1033 function, IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        print(f'OEIS sequence {seq} after abs(3301-x) on it')
+                        ResearchUtils.print_section_data(section, pt)
+
 
     @staticmethod
     def page15_function_keystream():
@@ -383,51 +382,47 @@ class Attempts(object):
             This function was concluded from the Page 15 square matrix.
         """
 
-        # Iterate all pages
-        page_index = -1
-        for page in ResearchUtils.get_unsolved_pages():
-
-            # Increase page index
-            page_index += 1
+        # Iterate all sections 
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Try adding or substructing
             for add_option in (False, True):
 
                 # Try on primes 
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 Page15FuncPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} Func15(primes) (IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                print(f'Func15(primes) transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try on Fibonacci-indexed primes
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 Page15FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} Func15(fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                print(f'Func15(fibo-primes) transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try the Totient of the Fibonacci-indexed primes
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:sympy.totient(x), MathUtils.get_fibo_primes())).transform(pt)
-                print(f'PAGE {page_index} Tot(fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                print(f'Totient(fibo-primes) transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try the Totient of the function from page 15 on Fibonacci indexed primes
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:abs(3301 - sympy.totient(x)), MathUtils.get_fibo_primes())).transform(pt)
-                print(f'PAGE {page_index} Func15(Tot(fibo-primes)) (IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                print(f'Func15(Totient(fibo-primes)) transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
-
+              
                 # Try on Fibonacci-indexed primes without the page 15 function
-                pt = ProcessedText(page)
+                pt = ProcessedText(section.get_all_text())
                 FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'PAGE {page_index} (fibo-primes) (IOC={pt.get_rune_ioc()}):\n\n')
-                screen.print_solved_text(f'{pt.to_latin()}\n\n{page}\n\n\n')
+                print(f'Fibo-primes transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
-
+ 
     @staticmethod
     def spiral_square_keystream():
         """
