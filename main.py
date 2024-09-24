@@ -598,6 +598,22 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
+    def mod_inv():
+        """
+            Performs a modular inverse of each unsolved section.
+        """
+            
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Perform modular inverse
+            pt = ProcessedText(section.get_all_text())
+            ModInvTransformer().transform(pt)
+            print(f'Modular inverse')
+            ResearchUtils.print_section_data(section, pt)
+            screen.press_enter()
+
+    @staticmethod
     def primes_11_indices_apart(word_threshold=4, ioc_threshold=1.8):
         """
             Performs a keystream manipulation on runes based on prime numbers that are 11 indices apart.

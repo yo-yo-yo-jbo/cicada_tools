@@ -679,7 +679,7 @@ class ModInvTransformer(TransformerBase):
             result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
-        processed_text.set_runes(result[:len(runes)])
+        processed_text.set_runes(result)
 
 class UnsolvedTransformer(TransformerBase):
     """
