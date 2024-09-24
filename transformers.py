@@ -45,6 +45,28 @@ class MathUtils(object):
         return sympy.totient(n)
 
     @staticmethod
+    def sqrt(num):
+        """
+            Square root of the given number.
+        """
+
+        # Use sympy
+        return sympy.sqrt(num)
+
+    @staticmethod
+    def is_square(num):
+        """
+            Indicates if the given number is a square.
+        """
+
+        # Rule out negatives
+        if num < 0:
+            return False
+
+        # See if the square root is an integer
+        return sympy.sqrt(num).is_Integer
+
+    @staticmethod
     def gen_primes():
         """
             A generator for primes.
@@ -569,7 +591,7 @@ class Page15FiboPrimesTransformer(KeystreamTransformer):
         # Call super
         super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.get_fibo_primes()), interrupt_indices=interrupt_indices)
 
-class SpiralSquareTransformer(KeystreamTransformer):
+class SpiralSquareKeystreamTransformer(KeystreamTransformer):
     """
         Given a square matrix, uses its values as a keystream in a clockwise spiral shape from its center.
         This pattern was erived from Page 15's square matrix.

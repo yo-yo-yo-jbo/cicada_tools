@@ -17,6 +17,7 @@ import requests
 import tempfile
 import gzip
 import shutil
+import sympy
 
 class ResearchUtils(object):
     """
@@ -414,7 +415,6 @@ class Attempts(object):
                         print(f'OEIS sequence {seq} after abs(3301-x) on it')
                         ResearchUtils.print_section_data(section, pt)
 
-
     @staticmethod
     def page15_function_keystream():
         """
@@ -483,7 +483,7 @@ class Attempts(object):
 
                     # Use as a keystream
                     pt = ProcessedText(section.get_all_text())
-                    SpiralSquareTransformer(matrix=square, add=add_option).transform(pt)
+                    SpiralSquareKeystreamTransformer(matrix=square, add=add_option).transform(pt)
                     print(f'Square {square_index} (add={add_option}):')
                     ResearchUtils.print_section_data(section, pt)
                     screen.press_enter()
@@ -571,6 +571,31 @@ class Attempts(object):
                         print(f'Stream {stream_index} (add={add_option}):')
                         ResearchUtils.print_section_data(section, pt)
                         screen.press_enter()
+
+    @staticmethod
+    def square_sections_spiral():
+        """
+            Performs a spiral transformation on sections with numbers of runes that are a square.
+        """
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Conclude if the number of runes is a square
+            pt = ProcessedText(section.get_all_text())
+            runes = pt.get_runes()
+            if not MathUtils.is_square(len(runes)):
+                continue
+
+            # Treat as a square matrix
+            side = MathUtils.sqrt(len(runes))
+            matrix = sympy.Matrix([ [ RuneUtils.get_rune_index(rune) for rune in runes[i:i+side] ] for i in range(0, len(runes), side) ])
+
+            # Walk the matrix in a spiral
+            pt.set_runes([ RuneUtils.rune_at(index) for index in MathUtils.matrix_to_spiral_stream(matrix) ])
+            print(f'Spiral rearrangement on section (size={side}x{side})')
+            ResearchUtils.print_section_data(section, pt)
+            screen.press_enter()
 
 def research_menu():
     """
