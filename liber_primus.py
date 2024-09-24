@@ -48,7 +48,10 @@ class LiberPrimus(object):
                     section_transformers.append(getattr(sys.modules['transformers'], transformer_type)(**transformer_params))
 
                 # Create the section object and add all pages
-                section = Section(title=section_data['title'], transformers=section_transformers)
+                nice_name = section_name[:]
+                if '_' in nice_name:
+                    nice_name = ' '.join(nice_name.split('_')[1:])
+                section = Section(name=nice_name.title(), title=section_data['title'], transformers=section_transformers)
                 for page_data in section_data['pages']:
                     section.add_page(Page(section=section, number=page_data.get('number', None), text=page_data['text']))
 
@@ -81,15 +84,32 @@ class Section(object):
         Represents a book section.
     """
 
-    def __init__(self, title, transformers):
+    def __init__(self, name, title, transformers):
         """
             Creates an instance.
         """
 
         # Save members
+        self.name = name
         self.title = title
         self.transformers = transformers
         self.pages = []
+
+    def get_all_text(self):
+        """
+            Get the entire section text.
+        """
+
+        # Return text from all pages
+        return '\n'.join([ page.text for page in self.pages ])
+
+    def get_page_numbers(self):
+        """
+            Get the page numbers.
+        """
+
+        # Return all non-empty numbers
+        return sorted([ page.number for page in self.pages if page.number is not None ])
 
     def add_page(self, page):
         """

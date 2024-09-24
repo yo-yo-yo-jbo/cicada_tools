@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from pages import *
 from core import *
 from squares import *
 from secrets import *
 from transformers import *
+from liber_primus import LiberPrimus
 
 import os
 import itertools
@@ -21,43 +21,48 @@ class ResearchUtils(object):
         Research utlities.
     """
 
+    # Cache for English words as runes
+    _ENGLISH_WORDS = None
+
     @staticmethod
-    def get_unsolved_pages():
+    def get_unsolved_sections():
         """
-            Gets all unsolved pages.
+            Gets all unsolved sections.
         """
 
-        # Try to decrypt all pages
+        # Try to decrypt all sections
         result = []
-        for page in PAGES:
+        for section in LiberPrimus.get_all_sections():
 
             # Process all text
-            processed_text = ProcessedText(page[0])
-            page[1].transform(processed_text)
+            processed_text = ProcessedText(section.get_all_text())
+            for transformer in section.transformers:
+                transformer.transform(processed_text)
 
-            # Add to result if page is unsolved
+            # Add to result if section is unsolved
             if processed_text.is_unsolved():
-                result.append(page[0])
+                result.append(section)
 
-        # Return all unsolved pages
+        # Return all unsolved sections
         return result
 
-    @staticmethod
-    def get_rune_wordlist(use_dictionary=False):
+    @classmethod
+    def get_rune_wordlist(cls, use_dictionary=False):
         """
-            Get a Runic wordlist from all solved pages dynamically.
+            Get a Runic wordlist from all solved sections dynamically.
             Can also extend to an English wordlist.
         """
 
-        # Try to decrypt all pages
+        # Try to decrypt all sections
         result = set()
-        for page in PAGES:
+        for section in LiberPrimus.get_all_sections():
 
             # Process all text
-            processed_text = ProcessedText(page[0])
-            page[1].transform(processed_text)
+            processed_text = ProcessedText(section.get_all_text())
+            for transformer in section.transformers:
+                transformer.transform(processed_text)
 
-            # Skip unsolved pages
+            # Skip unsolved sections 
             if processed_text.is_unsolved():
                 continue
 
@@ -69,11 +74,18 @@ class ResearchUtils(object):
 
         # Optionally extend to use a wordlist
         if use_dictionary:
-            with open('english_wordlist.txt', 'r') as fp:
-                for word in fp.read().split('\n'):
-                    runic = RuneUtils.english_to_runes(word)
-                    if len(runic) > 0:
-                        result.add(runic)
+
+            # Build cache
+            if cls._ENGLISH_WORDS is None:
+                cls._ENGLISH_WORDS = []
+                with open('english_wordlist.txt', 'r') as fp:
+                    for word in fp.read().split('\n'):
+                        runic = RuneUtils.english_to_runes(word)
+                        if len(runic) > 0:
+                            cls._ENGLISH_WORDS.add(runic)
+            
+            # Use cache
+            result += cls._ENGLISH_WORDS
 
         # Return wordlist sorted by word length descending
         return sorted(result, key=len)[::-1]
@@ -84,41 +96,44 @@ class Attempts(object):
     """
 
     @staticmethod
-    def show_all_pages(only_solved=False):
+    def show_all_sections(only_solved=False):
         """
-            Presents all pages.
+            Presents all sections.
         """
 
-        # Decrypt all pages
-        page_index = 1
-        for page in PAGES:
+        # Decrypt all sections
+        for section in LiberPrimus.get_all_sections():
 
             # Build the processed text
-            processed_text = ProcessedText(page[0])
+            processed_text = ProcessedText(section.get_all_text())
 
             # Get the rune IoC
             rune_ioc = processed_text.get_rune_ioc()
 
             # Decrypt
-            page[1].transform(processed_text)
+            for transformer in section.transformers:
+                transformer.transform(processed_text)
 
             # Optionally skip unsolved
             if only_solved and processed_text.is_unsolved():
-                page_index += 1
                 continue
 
-            # Present page contents
-            print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
-            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{page[0]}\n\n\n')
+            # Present section contents
+            print(f'Section: {section.name} ("{section.title}")\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
+            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
 
-            # Show GP sums of solved pages
+            # Show page numbers if available
+            page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
+            if len(page_numbers_string) > 0:
+                print(f'\n\nPages: {page_numbers_string}')
+
+            # Show GP sums of solved sections
             if not processed_text.is_unsolved():
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
                 print(f'\n\nGP-sums: {gp_sum_string}\n')
 
             # Wait for further input
             screen.press_enter()
-            page_index += 1
 
     @staticmethod
     def show_all_solved_words():
@@ -135,23 +150,28 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def show_unsolved_pages_potential_cribs_lengths():
+    def show_unsolved_sections_potential_cribs_lengths():
         """
-            Shows each unsolved page with potential crib lengths at the beginning of the page.
+            Shows each unsolved sections with potential crib lengths at the beginning of the section.
         """
 
-        # Iterate all unsolved pages
-        page_index = -1
-        for page in ResearchUtils.get_unsolved_pages():
+        # Iterate all unsolved sections
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Get all words until a period
-            page_index += 1
-            header_words = ProcessedText(page.split('.')[0]).get_rune_words()
+            header_words = ProcessedText(section.get_all_text().split('.')[0]).get_rune_words()
             if len(header_words) == 0:
                 continue
             header_words_lengths = [ len(w) for w in header_words ]
-            print(f'Page: {page_index}\n\n')
-            screen.print_solved_text(f'{page}\n\n{header_words_lengths}')
+
+            # Show section information
+            print(f'Section: {sectio.name} ("{section.title}")')
+            page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
+            if len(page_numbers_string) > 0:
+                print(f'\n\nPages: {page_numbers_string}')
+
+            # Present the header words lengths
+            screen.print_solved_text(f'Potential crib lengths: {header_words_lengths}')
             screen.press_enter()
 
     @staticmethod
