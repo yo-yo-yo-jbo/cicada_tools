@@ -106,7 +106,11 @@ class ResearchUtils(object):
         """
 
         # Present section contents
-        print(f'Section: {section.name} ("{section.title}")')
+        print(f'Section: {section.name}', end='')
+        if len(section.title) > 0:
+            print(f' ("{section.title}")')
+        else:
+            print('')
         if processed_text is not None:
             print(f'Runic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
             screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
