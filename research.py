@@ -24,27 +24,33 @@ class ResearchUtils(object):
     # Cache for English words as runes
     _ENGLISH_WORDS = None
 
-    @staticmethod
-    def get_unsolved_sections():
+    # Cache for unsolved sections
+    _UNSOLVED_SECTIONS = None
+
+    @classmethod
+    def get_unsolved_sections(cls):
         """
             Gets all unsolved sections.
         """
 
-        # Try to decrypt all sections
-        result = []
-        for section in LiberPrimus.get_all_sections():
+        # Work on cache
+        if cls._UNSOLVED_SECTIONS is None:
 
-            # Process all text
-            processed_text = ProcessedText(section.get_all_text())
-            for transformer in section.transformers:
-                transformer.transform(processed_text)
+            # Try to decrypt all sections
+            cls._UNSOVLED_SECTIONS = []
+            for section in LiberPrimus.get_all_sections():
 
-            # Add to result if section is unsolved
-            if processed_text.is_unsolved():
-                result.append(section)
+                # Process all text
+                processed_text = ProcessedText(section.get_all_text())
+                for transformer in section.transformers:
+                    transformer.transform(processed_text)
+
+                # Add to result if section is unsolved
+                if processed_text.is_unsolved():
+                    cls._UNSOVLED_SECTIONS.append(section)
 
         # Return all unsolved sections
-        return result
+        return cls._UNSOVLED_SECTIONS
 
     @classmethod
     def get_rune_wordlist(cls, use_dictionary=False):
@@ -602,9 +608,8 @@ def research_menu():
             except KeyboardInterrupt:
                 pass
             continue
-        #except Exception as ex:
-        #    last_error = f'ERROR: {ex}'
-        # TODO JBO
+        except Exception as ex:
+            last_error = f'ERROR: {ex}'
 
 if __name__ == '__main__':
     research_menu()

@@ -95,13 +95,18 @@ class Section(object):
         self.transformers = transformers
         self.pages = []
 
+        # Cache
+        self._all_text = None
+
     def get_all_text(self):
         """
             Get the entire section text.
         """
 
-        # Return text from all pages
-        return '\n'.join([ page.text for page in self.pages ])
+        # Return text from all pages from cache
+        if self._all_text is None:
+            self._all_text = '\n'.join([ page.text for page in self.pages ])
+        return self._all_text
 
     def get_page_numbers(self):
         """
@@ -115,6 +120,9 @@ class Section(object):
         """
             Adds a page.
         """
+
+        # Invalidate cache
+        self._all_text = None
 
         # Save a page
         self.pages.append(page)
