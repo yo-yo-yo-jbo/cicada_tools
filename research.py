@@ -84,7 +84,7 @@ class Attempts(object):
     """
 
     @staticmethod
-    def show_all_pages():
+    def show_all_pages(only_solved=False):
         """
             Presents all pages.
         """
@@ -101,6 +101,11 @@ class Attempts(object):
 
             # Decrypt
             page[1].transform(processed_text)
+
+            # Optionally skip unsolved
+            if only_solved and processed_text.is_unsolved():
+                page_index += 1
+                continue
 
             # Present page contents
             print(f'Page: {page_index}\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')

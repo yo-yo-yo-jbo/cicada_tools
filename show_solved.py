@@ -9,7 +9,7 @@ def main():
 
     # Shows all pages
     screen.clear()
-    Attempts.show_all_pages()
+    Attempts.show_all_pages(True)
 
 if __name__ == '__main__':
     main()
