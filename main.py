@@ -624,11 +624,21 @@ class Attempts(object):
                         ResearchUtils.print_section_data(section, pt)
                         screen.press_enter()
 
+                    # Try Atbash
+                    AtbashTransformer().transform(pt)
+                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                        print(f'Primes 11 apart with Atbash (start_107_option={start_107_option}, add={add_option}):')
+                        ResearchUtils.print_section_data(section, pt)
+                        screen.press_enter()
+
+                    # Revert Atbash
+                    AtbashTransformer().transform(pt)
+
                     # Try shifting
                     for shift_value in range(1, 29):
                         ShiftTransformer(shift=1).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}. shift={shift_value}):')
+                            print(f'Primes 11 apart (start_107_option={start_107_option}, add={add_option}, shift={shift_value}):')
                             ResearchUtils.print_section_data(section, pt)
                             screen.press_enter()
 
