@@ -408,7 +408,7 @@ class Attempts(object):
                         ResearchUtils.print_section_data(section, pt)
 
                     # Try a special function on the sequence which comes from the Cicada page 15 spiral
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     func_seq = [ abs(3301 - elem) for elem in sequences[seq] ]
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
