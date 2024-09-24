@@ -665,7 +665,7 @@ class Attempts(object):
     @staticmethod
     def use_cuneiform_as_keystream():
         """
-            Uses the Cuneiform as a keystream in base 60.
+            Uses the Cuneiform as a keystream in base 59 or base 60.
         """
 
         # Translate Cuneiform to base60
@@ -682,6 +682,23 @@ class Attempts(object):
                 pt = ProcessedText(section.get_all_text())
                 KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
                 print(f'Base60 Cunieform keystream (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
+                screen.press_enter()
+
+        # Try base 59
+        digits = string.digits + string.ascii_uppercase + ''.join([ c for c in string.ascii_lowercase if c not in ('f', 'y', 'z') ])
+        keystream = [ digits.index(i[0]) * 59 + digits.index(i[1]) for i in CUNEIFORM ]
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Either add or substruct
+            for add_option in (False, True):
+
+                # Try decryption
+                pt = ProcessedText(section.get_all_text())
+                KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
+                print(f'Base59 Cunieform keystream (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
