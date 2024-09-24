@@ -90,6 +90,23 @@ class ResearchUtils(object):
         # Return wordlist sorted by word length descending
         return sorted(result, key=len)[::-1]
 
+    @staticmethod
+    def print_section_data(section, processed_text=None):
+        """
+            Unified way of printing a section data.
+        """
+
+        # Present section contents
+        print(f'Section: {section.name} ("{section.title}")')
+        if processed_text is not None:
+            print(f'Runic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
+            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
+
+        # Show page numbers if available
+        page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
+        if len(page_numbers_string) > 0:
+            print(f'\n\nPages: {page_numbers_string}')
+
 class Attempts(object):
     """
         Attempts made.
@@ -119,13 +136,7 @@ class Attempts(object):
                 continue
 
             # Present section contents
-            print(f'Section: {section.name} ("{section.title}")\nRunic IoC (pre): {rune_ioc}\nRunic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
-            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
-
-            # Show page numbers if available
-            page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
-            if len(page_numbers_string) > 0:
-                print(f'\n\nPages: {page_numbers_string}')
+            ResearchUtils.print_section_data(section, processed_text)
 
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
@@ -165,13 +176,11 @@ class Attempts(object):
             header_words_lengths = [ len(w) for w in header_words ]
 
             # Show section information
-            print(f'Section: {sectio.name} ("{section.title}")')
-            page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
-            if len(page_numbers_string) > 0:
-                print(f'\n\nPages: {page_numbers_string}')
+            ResearchUtils.print_section_data(section, None)
 
             # Present the header words lengths
-            screen.print_solved_text(f'Potential crib lengths: {header_words_lengths}')
+            print('Potential crib lengths: ', end='')
+            screen.print_solved_text(f'{header_words_lengths}\n\n{section.get_all_text()}')
             screen.press_enter()
 
     @staticmethod
@@ -184,12 +193,8 @@ class Attempts(object):
         # Get an extended wordlist for a measurement
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
-        # Iterate all pages
-        page_index = -1
-        for page in tqdm(ResearchUtils.get_unsolved_pages(), desc='Pages being analyzed'):
-
-            # Increase page index
-            page_index += 1
+        # Iterate all sections
+        for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
 
             # Iterate all number of totient operations
             for tot_call_count in range(1, 3):
@@ -198,22 +203,22 @@ class Attempts(object):
                 for add_option in (False, True):
 
                     # Try reversing and then run totient index manipulation
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     ReverseTransformer().transform(pt)
                     TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        ResearchUtils.print_section_data(section, processed_text)
 
                     # Try without reversing
-                    pt = ProcessedText(page)
+                    pt = ProcessedText(section.get_all_text())
                     TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        ResearchUtils.print_section_data(section, processed_text)
 
                     # Reverse after totient index manipulation
                     ReverseTransformer().transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'PAGE {page_index} (IOC={pt.get_rune_ioc()}, WordMatchers={pt.get_first_non_wordlist_word_index(wordlist)}):\n{pt.to_latin()}\n\n')
+                        ResearchUtils.print_section_data(section, processed_text)
 
     @staticmethod
     def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
