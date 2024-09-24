@@ -662,7 +662,16 @@ class HillCipherTransformer(TransformerBase):
 class ModInvTransformer(TransformerBase):
     """
         Performs modular inverse of each rune.
+        Also attempts to use a shift counter that is increased every time we hit the first rune.
     """
+
+    def __init__(self, use_shift_counter=False):
+        """
+            Creates an instance.
+        """
+
+        # Save members
+        self._use_shift_counter = use_shift_counter
 
     def transform(self, processed_text):
         """
@@ -671,11 +680,17 @@ class ModInvTransformer(TransformerBase):
 
         # Iterate runes
         result = []
+        shift_value = 0
         for rune in processed_text.get_runes():
             
             # Performs modular inverse
             curr_index = RuneUtils.get_rune_index(rune)
-            new_index = pow(curr_index, -1, RuneUtils.size()) if curr_index != 0 else 0
+            if curr_index == 0:
+                new_index = curr_index
+                if self._use_shift_counter:
+                    shift_value += 1
+            else:
+                new_index = pow(curr_index, -1, RuneUtils.size()) + shift_value
             result.append(RuneUtils.rune_at(new_index))
 
         # Set the result

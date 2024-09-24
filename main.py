@@ -608,7 +608,7 @@ class Attempts(object):
 
             # Perform modular inverse
             pt = ProcessedText(section.get_all_text())
-            ModInvTransformer().transform(pt)
+            ModInvTransformer(use_shift_counter=True).transform(pt)
             print(f'Modular inverse')
             ResearchUtils.print_section_data(section, pt)
             screen.press_enter()
