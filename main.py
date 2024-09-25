@@ -702,39 +702,35 @@ class Attempts(object):
             Uses the Cuneiform as a keystream in base 59 or base 60.
         """
 
-        # Translate Cuneiform to base60
-        digits = string.digits + string.ascii_uppercase + string.ascii_lowercase[:-2]
-        keystream = [ digits.index(i[0]) * 60 + digits.index(i[1]) for i in CUNEIFORM ]
+        # Translate Cuneiform to base60 or base59 and try all combinations
+        for base in (60, 59):
 
-        # Iterate all sections
-        for section in ResearchUtils.get_unsolved_sections():
+            # Build all the digit chunks since we do not know the ordering
+            lowercases = string.ascii_lowercase[:-2]
+            if base == 59:
+                lowercases = ''.join([ c for c in lowercases if c != 'f' ])
+            digit_chunks = [ string.digits, string.ascii_uppercase, lowercases ]
 
-            # Either add or substruct
-            for add_option in (False, True):
+            # Iterate all ordering options
+            for digit_ordering in itertools.permutations(digit_chunks):
 
-                # Try decryption
-                pt = ProcessedText(section.get_all_text())
-                KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
-                print(f'Base60 Cunieform keystream (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                # Build the keystream
+                digits = ''.join(digit_ordering)
+                order_marker = '<'.join([ chunk[0] for chunk in digit_ordering ])
+                keystream = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM ]
 
-        # Try base 59
-        digits = string.digits + string.ascii_uppercase + ''.join([ c for c in string.ascii_lowercase if c not in ('f', 'y', 'z') ])
-        keystream = [ digits.index(i[0]) * 59 + digits.index(i[1]) for i in CUNEIFORM ]
+                # Iterate all sections
+                for section in ResearchUtils.get_unsolved_sections():
 
-        # Iterate all sections
-        for section in ResearchUtils.get_unsolved_sections():
+                    # Either add or substruct
+                    for add_option in (False, True):
 
-            # Either add or substruct
-            for add_option in (False, True):
-
-                # Try decryption
-                pt = ProcessedText(section.get_all_text())
-                KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
-                print(f'Base59 Cunieform keystream (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                        # Try decryption
+                        pt = ProcessedText(section.get_all_text())
+                        KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
+                        print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
+                        ResearchUtils.print_section_data(section, pt)
+                        screen.press_enter()
 
 def research_menu():
     """
