@@ -755,15 +755,15 @@ def research_menu():
         # List all static methods in Attempts
         screen.print_yellow('== METHODS AVAILABLE ==')
         attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
+        dots_max_len = len(str(len(attempts))) + 5 + max([ len(attempt[0]) for attempt in attempts ])
         index = 0
         for k, v in attempts:
             index += 1
             nice_title = k.replace('_', ' ').title()
             nice_desc = v.__func__.__doc__.strip().split('\n')[0]
-            if len(nice_desc) > 170:
-                nice_desc = nice_desc[:170] + '...'
             screen.print_blue(f'{index}.', end=' ')
-            print(f'{nice_title}\n\t{nice_desc}')
+            dots = '.' * (dots_max_len - (len(nice_title) + len(str(index))))
+            print(f'{nice_title} {dots} {nice_desc}')
 
         # Always give the option of quitting
         print('\nChoose ', end='')
