@@ -48,6 +48,15 @@ class RuneUtils(object):
         return cls._LATIN[index % cls.size()]
 
     @classmethod
+    def gp_at(cls, index):
+        """
+            Return the GP prime at a specific index.
+        """
+
+        # Returns the GP prime
+        return cls._GP_PRIMES[index % cls.size()]
+
+    @classmethod
     def is_rune(cls, rune):
         """
             Indicates if the given input is a rune or not.

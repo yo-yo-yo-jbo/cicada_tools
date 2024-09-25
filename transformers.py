@@ -365,7 +365,7 @@ class TotientPrimeTransformer(TransformerBase):
         You can also call the totient function recusrively, if needed, or not call it at all.
     """
 
-    def __init__(self, add=True, interrupt_indices=set(), tot_calls=1):
+    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1):
         """
             Creates an instance.
         """
@@ -409,7 +409,7 @@ class TotientFibTransformer(TransformerBase):
         You can also call the totient function recusrively, if needed, or not call it at all.
     """
 
-    def __init__(self, add=True, interrupt_indices=set(), tot_calls=1):
+    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1):
         """
             Creates an instance.
         """
@@ -452,7 +452,7 @@ class MobiusTotientPrimeTransformer(TransformerBase):
         Substructs or adds to Mobius function of the totient of primes (i.e. p-1), times a either the totient or the prime, from each index.
     """
 
-    def __init__(self, add=True, use_prime_as_base=False, interrupt_indices=set()):
+    def __init__(self, add=False, use_prime_as_base=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -511,7 +511,7 @@ class KeystreamTransformer(TransformerBase):
         Keystream is assumed to be infinite or sufficiently long - but generally will give up and only transform the first N runes if finite.
     """
 
-    def __init__(self, add=True, keystream=None, interrupt_indices=set()):
+    def __init__(self, add=False, keystream=None, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -557,7 +557,7 @@ class Page15FuncPrimesTransformer(KeystreamTransformer):
         That function was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=True, interrupt_indices=set()):
+    def __init__(self, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -571,7 +571,7 @@ class FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=True, interrupt_indices=set()):
+    def __init__(self, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -585,7 +585,7 @@ class Page15FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=True, interrupt_indices=set()):
+    def __init__(self, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -599,7 +599,7 @@ class SpiralSquareKeystreamTransformer(KeystreamTransformer):
         This pattern was erived from Page 15's square matrix.
     """
 
-    def __init__(self, matrix, add=True, interrupt_indices=set()):
+    def __init__(self, matrix, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -613,7 +613,7 @@ class Primes11IndicesApartTransformer(KeystreamTransformer):
         That corresponds to primes that are 11-indices apart, and can be turned into a keystream.
     """
 
-    def __init__(self, start_value=107, add=True, interrupt_indices=set()):
+    def __init__(self, start_value=107, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
@@ -692,6 +692,45 @@ class ModInvTransformer(TransformerBase):
             else:
                 new_index = pow(curr_index, -1, RuneUtils.size()) + shift_value
             result.append(RuneUtils.rune_at(new_index))
+
+        # Set the result
+        processed_text.set_runes(result)
+
+class AutokeyGpTransformer(TransformerBase):
+    """
+        Uses the GP value of the previous plaintext or ciphertext in an Autokey fashion.
+    """
+
+    def __init__(self, add=False, use_plaintext=True, primer_value=0, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Save members
+        self._add = add
+        self._use_plaintext = use_plaintext
+        self._primer_value = primer_value
+        self._interrupt_indices = interrupt_indices
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Iterate runes
+        result = []
+        last_value = self._primer_value
+        for rune in processed_text.get_runes():
+
+            # Generate the new rune index
+            curr_index = RuneUtils.get_rune_index(rune)
+            new_index = curr_index + last_value if self._add else curr_index - last_value
+            new_index %= RuneUtils.size()
+            result.append(RuneUtils.rune_at(new_index))
+
+            # Update last value
+            last_value = curr_index if self._use_plaintext else new_index
+            last_value = RuneUtils.gp_at(last_value)
 
         # Set the result
         processed_text.set_runes(result)
