@@ -607,19 +607,19 @@ class SpiralSquareKeystreamTransformer(KeystreamTransformer):
         # Call super
         super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices)
 
-class Primes11IndicesApartTransformer(KeystreamTransformer):
+class PrimesIndicesApartTransformer(KeystreamTransformer):
     """
         The first few pages of Liber Primus part 1 (solved pages) have page numbers that are 107, 167, 229.
         That corresponds to primes that are 11-indices apart, and can be turned into a keystream.
     """
 
-    def __init__(self, start_value=107, add=False, interrupt_indices=set()):
+    def __init__(self, indices_apart=11, start_value=107, add=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=11), interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=indices_apart), interrupt_indices=interrupt_indices)
 
 class HillCipherTransformer(TransformerBase):
     """

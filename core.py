@@ -195,7 +195,7 @@ class ProcessedText(object):
         """
 
         # Returns the processed runes
-        return self._processed_runes[:]
+        return self._processed_runes
     
     def set_runes(self, new_runes):
         """

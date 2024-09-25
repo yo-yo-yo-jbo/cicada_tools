@@ -151,8 +151,10 @@ class Attempts(object):
             # Build the processed text
             processed_text = ProcessedText(section.get_all_text())
 
-            # Get the rune IoC
-            rune_ioc = processed_text.get_rune_ioc()
+            # Calculate the doublets rate
+            runes = processed_text.get_runes()
+            doublets_count = len([ True for i in range(len(runes) - 1) if runes[i] == runes[i + 1] ])
+            doublets_rate = doublets_count / len(runes) if len(runes) > 0 else 0.0
 
             # Decrypt
             for transformer in section.transformers:
@@ -165,10 +167,13 @@ class Attempts(object):
             # Present section contents
             ResearchUtils.print_section_data(section, processed_text)
 
+            # Show the doublets rate
+            print(f'\n\nDoublets rate: {doublets_rate} ({doublets_count} / {len(runes)})')
+
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
-                print(f'\n\nGP-sums: {gp_sum_string}\n')
+                print(f'GP-sums: {gp_sum_string}\n')
 
             # Wait for further input if filename is available
             image_paths = [ page.filepath for page in section.pages if page.filepath is not None ]
@@ -643,10 +648,11 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def primes_11_indices_apart(word_threshold=4, ioc_threshold=1.8):
+    def primes_indices_apart(word_threshold=4, ioc_threshold=1.8):
         """
-            Performs a keystream manipulation on runes based on prime numbers that are 11 indices apart.
+            Performs a keystream manipulation on runes based on prime numbers that are 11 or 13 indices apart.
             This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
+            The number 13 was derived based on IoC analysis on several pages, specifically 54-55.
         """
 
         # Get an extended wordlist for a measurement
@@ -656,36 +662,39 @@ class Attempts(object):
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
 
             # Start values could be either 107 (naturally from LP1), 13 (lowest prime to start from assuming 107 is in sequence) and 2 (first prime)
-            for start_value in (107, 13, 2):
+            for start_value in (107, 13, 2, 0):
                 
                 # Either adding or substructing
                 for add_option in (False, True):
 
-                    # Use the prime sequence
-                    pt = ProcessedText(section.get_all_text())
-                    Primes11IndicesApartTransformer(add=add_option, start_value=start_value).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'Primes 11 apart (start_value={start_value}, add={add_option}):')
-                        ResearchUtils.print_section_data(section, pt)
-                        screen.press_enter()
+                    # Either work with 13 or 11
+                    for indices_apart in (13, 11):
 
-                    # Try Atbash
-                    AtbashTransformer().transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'Primes 11 apart with Atbash (start_value={start_value}, add={add_option}):')
-                        ResearchUtils.print_section_data(section, pt)
-                        screen.press_enter()
-
-                    # Revert Atbash
-                    AtbashTransformer().transform(pt)
-
-                    # Try shifting
-                    for shift_value in range(1, RuneUtils.size()):
-                        ShiftTransformer(shift=1).transform(pt)
+                        # Use the prime sequence
+                        pt = ProcessedText(section.get_all_text())
+                        PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=indices_apart).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Primes 11 apart (start_value={start_value}, add={add_option}, shift={shift_value}):')
+                            print(f'Primes {indices_apart} apart (start_value={start_value}, add={add_option}):')
                             ResearchUtils.print_section_data(section, pt)
                             screen.press_enter()
+
+                        # Try Atbash
+                        AtbashTransformer().transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            print(f'Primes {indices_apart} apart with Atbash (start_value={start_value}, add={add_option}):')
+                            ResearchUtils.print_section_data(section, pt)
+                            screen.press_enter()
+
+                        # Revert Atbash
+                        AtbashTransformer().transform(pt)
+
+                        # Try shifting
+                        for shift_value in range(1, RuneUtils.size()):
+                            ShiftTransformer(shift=1).transform(pt)
+                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                                print(f'Primes {indices_apart} apart (start_value={start_value}, add={add_option}, shift={shift_value}):')
+                                ResearchUtils.print_section_data(section, pt)
+                                screen.press_enter()
 
     @staticmethod
     def use_cuneiform_as_keystream():
