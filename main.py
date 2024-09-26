@@ -615,13 +615,15 @@ class Attempts(object):
         """
             Attempts to use the GP-sum of each solved section words as a keystream.
             Also attempts to use the GP-sums of entire solved LP1 as a keystream.
+            Also attempts to use line GP-sums of solved sections from LP1.
         """
 
         # Get an extended wordlist for a measurement
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Build dictionary mapping solved sections to GP-sum based streams
-        lp1_keystream = []
+        lp1_keystream_words = []
+        lp1_keystream_lines = []
         had_unsolved = False
         streams = []
         result = set()
@@ -637,17 +639,24 @@ class Attempts(object):
                 had_unsolved = True
                 continue
 
-            # Get the stream
-            stream = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
-            if len(stream) > 0:
-                streams.append(stream)
+            # Get the word stream
+            stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
+            if len(stream_words) > 0:
+                streams.append(stream_words)
 
-            # Append stream to the LP1 keystream
+            # Get the line stream
+            stream_lines = [ RuneUtils.runes_to_gp_sum(line) for line in processed_text.split_lines(include_empty_lines=False) ]
+            if len(stream_lines) > 0:
+                streams.append(stream_lines)
+
+            # Append current section stream to the LP1 keystreams
             if not had_unsolved:
-                lp1_keystream += stream
+                lp1_keystream_words += stream_words
+                lp1_keystream_lines += stream_lines
 
-        # Add LP1 keystream to the front of the streams
-        streams.insert(0, lp1_keystream)
+        # Add LP1 keystreams to the front of the streams
+        streams.insert(0, lp1_keystream_words)
+        streams.insert(0, lp1_keystream_lines)
 
         # Iterate all unsolved sections and attempt to use each stream on each section
         for section in tqdm(ResearchUtils.get_unsolved_sections()):

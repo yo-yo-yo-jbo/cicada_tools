@@ -87,7 +87,7 @@ class RuneUtils(object):
     @classmethod
     def runes_to_gp_sum(cls, runes):
         """
-            Translates runes to GP-sum.
+            Translates runes to a GP-sum, ignoring non-runes.
         """
 
         # Only take runes and translate
@@ -218,6 +218,17 @@ class ProcessedText(object):
         else:
             text = text.replace('.', ' . ')
         return [ word for word in ''.join([ c for c in text if RuneUtils.is_rune(c) or c in (' ', '.') ]).split(' ') if len(word) > 0 ]
+
+    def split_lines(self, include_empty_lines=True):
+        """
+            Split text into lines.
+        """
+
+        # Split
+        lines = self.get_rune_text().split('/')
+        if not include_empty_lines:
+            lines = [ line for line in lines if len(line.strip()) == 0 ]
+        return lines
 
     def get_first_non_wordlist_word_index(self, wordlist):
         """
