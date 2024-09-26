@@ -692,9 +692,9 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def mod_inv():
+    def modular_inverse():
         """
-            Performs a modular inverse of each unsolved section.
+            Performs a modular inverse of each rune in each unsolved section (except the zero-th rune).
         """
             
         # Iterate all sections
