@@ -121,9 +121,9 @@ class ResearchUtils(object):
             print(f'\n\nPages: {page_numbers_string}')
 
     @staticmethod
-    def open_path(path):
+    def launch_path(path):
         """
-            Opens the path.
+            Launches the given path.
         """
 
         # Act differently based on platform
@@ -189,7 +189,7 @@ class Attempts(object):
                 choice = input(')? ')
                 if choice.strip().upper() == 'Y':
                     for image_path in image_paths:
-                        ResearchUtils.open_path(image_path)
+                        ResearchUtils.launch_path(image_path)
                     screen.press_enter()
                 else:
                     screen.clear()
