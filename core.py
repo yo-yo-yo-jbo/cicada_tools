@@ -225,9 +225,9 @@ class ProcessedText(object):
         """
 
         # Split
-        lines = self.get_rune_text().split('/')
+        lines = self.get_rune_text().replace('/', '\n').split('\n')
         if not include_empty_lines:
-            lines = [ line for line in lines if len(line.strip()) == 0 ]
+            lines = [ line for line in lines if len(line.strip()) > 0 ]
         return lines
 
     def get_first_non_wordlist_word_index(self, wordlist):
