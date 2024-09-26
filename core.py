@@ -118,7 +118,7 @@ class RuneUtils(object):
         s = s.replace('K', 'C')         # "BOOC"
         s = s.replace('U', 'V')         # "OVR"
         s = s.replace('Z', 'S')         # Hypothesis
-        s = s.replace('Q', 'C')         # Kypothesis
+        s = s.replace('Q', 'C')         # Hypothesis
 
         # Try to minimize the number of runes by prioritizing runes that translate to two-letter latin
         for i in range(len(cls._RUNES)):
