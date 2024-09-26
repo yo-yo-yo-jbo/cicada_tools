@@ -567,6 +567,7 @@ class Attempts(object):
         # Build a new square from the sum of first two squares
         squares = SQUARES[:]
         squares.append(squares[0] + squares[1])
+        squares.append(squares[0] * squares[1])
 
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
