@@ -768,10 +768,13 @@ class Attempts(object):
                                 screen.press_enter()
 
     @staticmethod
-    def use_cuneiform_as_keystream():
+    def use_cuneiform_as_keystream(word_threshold=4, ioc_threshold=1.8):
         """
             Uses the Cuneiform as a keystream in base 59 or base 60.
         """
+
+        # Get an extended wordlist for a measurement
+        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Translate Cuneiform to base60 or base59 and try all combinations
         for base in (60, 59):
@@ -783,25 +786,30 @@ class Attempts(object):
             digit_chunks = [ string.digits, string.ascii_uppercase, lowercases ]
 
             # Iterate all ordering options
-            for digit_ordering in itertools.permutations(digit_chunks):
+            for digit_ordering in tqdm(itertools.permutations(digit_chunks), desc=f'Base{base} with all ordering permutations'):
 
-                # Build the keystream
+                # Build the keystream (both ordered and reversed) 
                 digits = ''.join(digit_ordering)
                 order_marker = '<'.join([ chunk[0] for chunk in digit_ordering ])
-                keystream = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM ]
+                cuneiform = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM ]
+                keystreams = [ cuneiform, cuneiform[::-1] ]
 
-                # Iterate all sections
-                for section in ResearchUtils.get_unsolved_sections():
+                # Try both normal and reversed keystreams
+                for keystream in keystreams:
 
-                    # Either add or substruct
-                    for add_option in (False, True):
+                    # Iterate all sections
+                    for section in ResearchUtils.get_unsolved_sections():
 
-                        # Try decryption
-                        pt = ProcessedText(section.get_all_text())
-                        KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
-                        print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
-                        ResearchUtils.print_section_data(section, pt)
-                        screen.press_enter()
+                        # Either add or substruct
+                        for add_option in (False, True):
+
+                            # Try decryption
+                            pt = ProcessedText(section.get_all_text())
+                            KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
+                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                                print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
+                                ResearchUtils.print_section_data(section, pt)
+                                screen.press_enter()
 
 def research_menu():
     """
