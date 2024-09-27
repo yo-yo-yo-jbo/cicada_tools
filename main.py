@@ -99,7 +99,7 @@ class Attempts(object):
     def sentence_cribbing(skip_limit=3301, start_val_limit=3301):
         """
             Attempts cribbing the first sentence automatically, assuming a prime-related ascending key.
-            Assumes interrupters might occur.
+            Assumes interrupters might occur. Also attempts to use emirps (Decimal-reversal of primes).
         """
 
         # Get words
@@ -171,6 +171,15 @@ class Attempts(object):
                                 plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
                                 print(f'Totient primes abs(3301-x) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
 
+                            # Build mirpe key
+                            key = [ int(str(i + 1)[::-1]) for i in key ]
+                            processed_text = ProcessedText(' '.join(header_words))
+                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
+                            pt_header_words = processed_text.get_rune_words()
+                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
+                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
+                                print(f'Emirps (Decimal-reverse primes) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
+
     @staticmethod
     def double_tot_index_with_reversing(word_threshold=6, ioc_threshold=1.8):
         """
@@ -190,32 +199,39 @@ class Attempts(object):
                 # Try adding or substructing
                 for add_option in (False, True):
 
-                    # Try reversing and then run totient index manipulation
-                    pt = ProcessedText(section.get_all_text())
-                    ReverseTransformer().transform(pt)
-                    TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        ResearchUtils.print_section_data(section, processed_text)
+                    # Also attempt emirps
+                    for emirp_val in (False, True):
 
-                    # Try without reversing
-                    pt = ProcessedText(section.get_all_text())
-                    TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        ResearchUtils.print_section_data(section, processed_text)
+                        # Try reversing and then run totient index manipulation
+                        pt = ProcessedText(section.get_all_text())
+                        ReverseTransformer().transform(pt)
+                        TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            ResearchUtils.print_section_data(section, processed_text)
 
-                    # Reverse after totient index manipulation
-                    ReverseTransformer().transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        ResearchUtils.print_section_data(section, processed_text)
+                        # Try without reversing
+                        pt = ProcessedText(section.get_all_text())
+                        TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            ResearchUtils.print_section_data(section, processed_text)
+
+                        # Reverse after totient index manipulation
+                        ReverseTransformer().transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            ResearchUtils.print_section_data(section, processed_text)
 
     @staticmethod
     def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
         """
             Attempts to use the Cicada 3301 message missing primes from 2013 as a keystream.
+            Also attempts to use emirps (Decimal-reversed primes).
         """
 
         # Get an extended wordlist for a measurement
         wordlist = ResearchUtils.get_rune_wordlist(True)
+
+        # Build the Emirp keystream
+        emirp_ks = [ int(str(p[::-1])) for p in MISSING_PRIMES_2013 ]
 
         # Iterate all sections 
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
@@ -228,6 +244,13 @@ class Attempts(object):
                 KeystreamTransformer(add=add, keystream=iter(MISSING_PRIMES_2013)).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     ResearchUtils.print_section_data(section, pt)
+
+                # Try with Emirps
+                pt = ProcessedText(section.get_all_text())
+                KeystreamTransformer(add=add, keystream=iter(emirp_ks)).transform(pt)
+                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                    ResearchUtils.print_section_data(section, pt)
+
 
     @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=6, ioc_threshold=1.8, min_key_len=6):

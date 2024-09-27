@@ -363,9 +363,10 @@ class TotientPrimeTransformer(TransformerBase):
     """
         Substructs or adds the totient of primes (i.e. p-1) from each index.
         You can also call the totient function recusrively, if needed, or not call it at all.
+        Optiomally turns primes into emirps (Decimal-reversed primes).
     """
 
-    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1):
+    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1, emirp=False):
         """
             Creates an instance.
         """
@@ -373,6 +374,7 @@ class TotientPrimeTransformer(TransformerBase):
         # Save the action and the number of totient calls
         self._add = add
         self._tot_calls = tot_calls
+        self._emirp = emirp
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -391,7 +393,7 @@ class TotientPrimeTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 new_index = RuneUtils.get_rune_index(rune)
             else:
-                val = curr_prime
+                val = int(str(curr_prime)[::-1]) if self._emirp else curr_prime
                 for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
