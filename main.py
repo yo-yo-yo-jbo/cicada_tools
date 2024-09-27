@@ -172,8 +172,8 @@ class Attempts(object):
                                 plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
                                 print(f'Totient primes abs(3301-x) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def double_tot_index_with_reversing(word_threshold=6, ioc_threshold=1.8):
         """
@@ -211,8 +211,8 @@ class Attempts(object):
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         ResearchUtils.print_section_data(section, processed_text)
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
         """
@@ -234,8 +234,8 @@ class Attempts(object):
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     ResearchUtils.print_section_data(section, pt)
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=6, ioc_threshold=1.8, min_key_len=6):
         """
@@ -296,8 +296,8 @@ class Attempts(object):
                             print(f'Autokey key="{key}" mode={mode} on reversed text')
                             ResearchUtils.print_section_data(section, pt)
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
         """
@@ -473,8 +473,8 @@ class Attempts(object):
                     ResearchUtils.print_section_data(section, pt)
                     screen.press_enter()
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def gp_value_autokey(word_threshold=6, ioc_threshold=1.8):
         """
@@ -500,8 +500,8 @@ class Attempts(object):
                             ResearchUtils.print_section_data(section, pt)
                             screen.press_enter()
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def gp_sum_keystream(word_threshold=6, ioc_threshold=1.8):
         """
@@ -608,8 +608,8 @@ class Attempts(object):
             ResearchUtils.print_section_data(section, pt)
             screen.press_enter()
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def primes_indices_apart(word_threshold=4, ioc_threshold=1.8):
         """
@@ -659,8 +659,8 @@ class Attempts(object):
                                 ResearchUtils.print_section_data(section, pt)
                                 screen.press_enter()
 
-    @measurement(IocMeasurement(threshold=1.8))
-    @measurement(PrefixWordsMeasurement(threshold=6))
+    @MeasurementUtils.measurement(IocMeasurement(threshold=1.8))
+    @MeasurementUtils.measurement(PrefixWordsMeasurement(threshold=6))
     @staticmethod
     def use_cuneiform_as_keystream(word_threshold=4, ioc_threshold=1.8):
         """

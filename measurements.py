@@ -3,25 +3,42 @@ from research_utils import ResearchUtils
 from abc import ABC
 from abc import abstractmethod
 
-def measurement(measurement_instance):
+class MeasurementUtils(object):
     """
-        Acts as a decorator for measurements, although it doesn't act as a decorator per-se but more like a function attribute.
-        The proper way is wrapping each attempt with a measurement decorator, e.g. @measurement(IocMeasurement(threshold=1.6))
+        Measurement utilities.
     """
 
-    def measurement_decorator(func):
+    @staticmethod
+    def measurement(measurement_instance):
         """
-            The decorator for the measurement functionality.
+            Acts as a decorator for measurements, although it doesn't act as a decorator per-se but more like a function attribute.
+            The proper way is wrapping each attempt with a measurement decorator, e.g. @measurement(IocMeasurement(threshold=1.6))
         """
 
-        # Add measurements to function
-        if not hasattr(func, '_measurements'):
-            func._measurements = []
-        func._measurements.append(measurement_instance)
-        return func
+        # Validate the type of the measurement instance
+        assert isinstance(measurement_instance, MeasurementBase), Exception('Given measurement instance is invalid')
 
-    # Act as a decorator
-    return measurement_decorator
+        def measurement_decorator(func):
+            """
+                The decorator for the measurement functionality.
+            """
+
+            # Add measurements to function
+            if not hasattr(func, '_measurements'):
+                func._measurements = []
+            func._measurements.append(measurement_instance)
+            return func
+
+        # Act as a decorator
+        return measurement_decorator
+
+    @staticmethod
+    def measure_and_print(processed_text):
+        """
+            Measure the processed text and print.
+        """
+
+        import pdb; pdb.set_trace()
 
 class MeasurementBase(ABC):
     """
