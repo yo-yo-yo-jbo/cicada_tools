@@ -196,7 +196,15 @@ class ProcessedText(object):
 
         # Returns the processed runes
         return self._processed_runes
-    
+
+    def get_num_of_runes(self):
+        """
+            Returns the number of runes.
+        """
+
+        # Returns the number of runes
+        return len(self._processed_runes)
+
     def set_runes(self, new_runes):
         """
             Save the runes.
