@@ -46,6 +46,24 @@ class ResearchUtils(object):
         return cls._UNSOVLED_SECTIONS
 
     @classmethod
+    def get_rune_english_dictionary(cls):
+        """
+            Gets runes from an English dictionary.
+        """
+
+        # Build cache
+        if cls._ENGLISH_WORDS is None:
+            cls._ENGLISH_WORDS = set() 
+            with open('english_wordlist.txt', 'r') as fp:
+                for word in fp.read().split('\n'):
+                    runic = RuneUtils.english_to_runes(word)
+                    if len(runic) > 0:
+                        cls._ENGLISH_WORDS.add(runic)
+        
+        # Use cache
+        return cls._ENGLISH_WORDS
+
+    @classmethod
     def get_rune_wordlist(cls, use_dictionary=False):
         """
             Get a Runic wordlist from all solved sections dynamically.
@@ -74,17 +92,8 @@ class ResearchUtils(object):
         # Optionally extend to use a wordlist
         if use_dictionary:
 
-            # Build cache
-            if cls._ENGLISH_WORDS is None:
-                cls._ENGLISH_WORDS = set() 
-                with open('english_wordlist.txt', 'r') as fp:
-                    for word in fp.read().split('\n'):
-                        runic = RuneUtils.english_to_runes(word)
-                        if len(runic) > 0:
-                            cls._ENGLISH_WORDS.add(runic)
-            
-            # Use cache
-            result = set.union(result, cls._ENGLISH_WORDS)
+           # Use cache
+            result = set.union(result, cls.get_rune_english_dictionary())
 
         # Return wordlist sorted by word length descending
         return sorted(result, key=len)[::-1]
