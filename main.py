@@ -5,15 +5,12 @@ from squares import *
 from secrets import *
 from transformers import *
 from liber_primus import LiberPrimus
+import screen
 
-import subprocess
-import platform
 import os
 import itertools
-import sys
 from tqdm import tqdm
 import string
-import screen
 import requests
 import tempfile
 import gzip
