@@ -3,20 +3,11 @@ from core import *
 from squares import *
 from transformers import *
 from liber_primus import LiberPrimus
+import screen
 
 import subprocess
 import platform
 import os
-import itertools
-import sys
-from tqdm import tqdm
-import string
-import screen
-import requests
-import tempfile
-import gzip
-import shutil
-import sympy
 
 class ResearchUtils(object):
     """
@@ -117,7 +108,7 @@ class ResearchUtils(object):
         # Show page numbers if available
         page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
         if len(page_numbers_string) > 0:
-            print(f'\n\nPages: {page_numbers_string}')
+            print(f'\nnPages: {page_numbers_string}')
 
     @staticmethod
     def launch_path(path):
