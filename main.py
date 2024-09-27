@@ -412,6 +412,13 @@ class Attempts(object):
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
+                # Try on Fibonacci-indexed emirps
+                pt = ProcessedText(section.get_all_text())
+                Page15FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
+                print(f'Func15(fibo-emirps) transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
+                screen.press_enter()
+
                 # Try the Totient of the Fibonacci-indexed primes
                 pt = ProcessedText(section.get_all_text())
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:sympy.totient(x), MathUtils.get_fibo_primes())).transform(pt)
@@ -429,6 +436,13 @@ class Attempts(object):
                 # Try on Fibonacci-indexed primes without the page 15 function
                 pt = ProcessedText(section.get_all_text())
                 FiboPrimesTransformer(add=add_option).transform(pt)
+                print(f'Fibo-primes transformation (add={add_option}):')
+                ResearchUtils.print_section_data(section, pt)
+                screen.press_enter()
+ 
+                # Try on Fibonacci-indexed emirps without the page 15 function
+                pt = ProcessedText(section.get_all_text())
+                FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
                 print(f'Fibo-primes transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()

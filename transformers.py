@@ -573,13 +573,14 @@ class FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=False, interrupt_indices=set()):
+    def __init__(self, add=False, emirp=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=MathUtils.get_fibo_primes(), interrupt_indices=interrupt_indices)
+        keystream = map(lambda x:int(str(x)[::-1]), MathUtils.get_fibo_primes()) if emirp else MathUtils.get_fibo_primes()
+        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices)
 
 class Page15FiboPrimesTransformer(KeystreamTransformer):
     """
@@ -587,13 +588,14 @@ class Page15FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=False, interrupt_indices=set()):
+    def __init__(self, add=False, emirp=False, interrupt_indices=set()):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.get_fibo_primes()), interrupt_indices=interrupt_indices)
+        keystream = map(lambda x:abs(3301-int(str(x)[::-1])), MathUtils.get_fibo_primes()) if emirp else map(lambda x:abs(3301-x), MathUtils.get_fibo_primes())
+        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices)
 
 class SpiralSquareKeystreamTransformer(KeystreamTransformer):
     """
