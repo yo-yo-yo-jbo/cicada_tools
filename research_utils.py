@@ -117,7 +117,7 @@ class ResearchUtils(object):
         # Show page numbers if available
         page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
         if len(page_numbers_string) > 0:
-            print(f'\nnPages: {page_numbers_string}')
+            print(f'\nPages: {page_numbers_string}')
 
     @staticmethod
     def launch_path(path):

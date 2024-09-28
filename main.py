@@ -682,9 +682,9 @@ class Attempts(object):
                                 screen.press_enter()
 
     @staticmethod
-    def use_cuneiform_as_keystream(word_threshold=4, ioc_threshold=1.8):
+    def use_cuneiform_keystream(word_threshold=4, ioc_threshold=1.8):
         """
-            Uses the Cuneiform as a keystream in base 59 or base 60.
+            Uses the Cuneiform stream as a keystream in either base 59 or base 60.
         """
 
         # Get an extended wordlist for a measurement
@@ -705,7 +705,7 @@ class Attempts(object):
                 # Build the keystream (both ordered and reversed) 
                 digits = ''.join(digit_ordering)
                 order_marker = '<'.join([ chunk[0] for chunk in digit_ordering ])
-                cuneiform = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM ]
+                cuneiform = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM_STREAM ]
                 keystreams = [ cuneiform, cuneiform[::-1] ]
 
                 # Try both normal and reversed keystreams
