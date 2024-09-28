@@ -103,7 +103,7 @@ class Attempts(object):
         """
 
         # Get words
-        wordlist = set(ResearchUtils.get_rune_wordlist(True))
+        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Either reverse or not
         for rev_option in (False, True):
