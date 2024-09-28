@@ -43,10 +43,6 @@ Contains `Transformer` classes, which transform `ProcessedText` instances runes 
 ### main.py
 Considered to be the "main" research-based module. Just run it.
 
-### squares.py
-Contains matrices found in `LP` in `sympy.Matrix` form.  
-Might be useful for things later such as `Hill cipher` attempts.
-
 ### secrets.py
 Contains other secrets that are not squares, such as the [2013 missing primes](https://uncovering-cicada.fandom.com/wiki/What_Happened_Part_1_(2013)#THE_DIFFERENCE).
 
