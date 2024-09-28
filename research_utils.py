@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from core import *
-from squares import *
 from transformers import *
 from liber_primus import LiberPrimus
 import screen

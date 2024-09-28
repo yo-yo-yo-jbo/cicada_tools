@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from research_utils import ResearchUtils
 from core import *
-from squares import *
 from secrets import *
 from transformers import *
 from liber_primus import LiberPrimus
@@ -800,3 +799,4 @@ def research_menu():
 
 if __name__ == '__main__':
     research_menu()
+    
