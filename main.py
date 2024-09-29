@@ -726,7 +726,7 @@ class Attempts(object):
                                 screen.press_enter()
 
     @staticmethod
-    def outguess_dictionary_attack():
+    def outguess_dictionary_attack(text_len_threthold=50):
         """
             Performs an Outguess dictionary attack (both English and runes, as well as few selected prime numbers used by Cicada).
         """
@@ -778,7 +778,7 @@ class Attempts(object):
                         continue
 
                     # Try either to decode as PGP or just retireve printable data
-                    if len(contents) == 0:
+                    if len(contents) < text_len_threthold:
                         continue
                     if 'BEGIN PGP SIGNED MESSAGE' in contents or contents.isprintable():
                         ResearchUtils.print_section_data(section, None)
