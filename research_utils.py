@@ -67,7 +67,7 @@ class ResearchUtils(object):
                     cls._ENGLISH_WORD_RUNES.add(runic)
         
         # Use cache
-        return cls._ENGLISH_WORD_RUNES if as_runes else _ENGLISH_WORD_ENGLISH
+        return cls._ENGLISH_WORD_RUNES if as_runes else cls._ENGLISH_WORD_ENGLISH
 
     @classmethod
     def get_rune_wordlist(cls, use_dictionary=False):
