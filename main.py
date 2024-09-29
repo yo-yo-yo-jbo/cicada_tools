@@ -773,7 +773,7 @@ class Attempts(object):
                     subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     try:
                         with open(temp_file_path, 'r') as fp:
-                            content = fp.read()
+                            contents = fp.read()
                     except Exception:
                         continue
 
