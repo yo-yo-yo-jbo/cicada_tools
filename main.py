@@ -749,6 +749,10 @@ class Attempts(object):
         # Add specific primes used by Cicada
         keys += [ '3301', '1033', '761', '167' ]
 
+        # Add an empty key and the option to not use a key
+        keys.append('')
+        keys.append(None)
+
         # Create a temporary file for outguess
         temp_file_path = tempfile.mktemp()
 
@@ -759,10 +763,14 @@ class Attempts(object):
                     continue
 
                 # Try all keys
-                for key in tqdm(keys, desc=f'Section: {section.name}'):
+                for key in tqdm(keys, desc=f'Section "{section.name}"'):
 
                     # Run outguess and retrieve file
-                    subprocess.run([ outguess_path, '-k', key, '-r', page.filepath, temp_file_path ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    if key is None:
+                        args = [ outguess_path, '-r', page.filepath, temp_file_path ]
+                    else:
+                        args = [ outguess_path, '-k', key, '-r', page.filepath, temp_file_path ]
+                    subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     try:
                         with open(temp_file_path, 'r') as fp:
                             content = fp.read()
@@ -774,7 +782,8 @@ class Attempts(object):
                         continue
                     if 'BEGIN PGP SIGNED MESSAGE' in contents or contents.isprintable():
                         ResearchUtils.print_section_data(section, None)
-                        screen.print_yellow(f'Key: {key}')
+                        key_str = '<NO KEY>' if key is None else key
+                        screen.print_yellow(f'Key: {key_str}')
                         print(contents)
                         screen.press_enter() 
 
