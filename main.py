@@ -759,7 +759,7 @@ class Attempts(object):
                     continue
 
                 # Try all keys
-                for key in keys:
+                for key in tqdm(keys, desc=f'Section: {section.name}'):
 
                     # Run outguess and retrieve file
                     subprocess.run([ outguess_path, '-k', key, '-r', page.filepath, temp_file_path ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
