@@ -758,12 +758,14 @@ class Attempts(object):
 
         # Iterate all pages that have file paths
         for section in LiberPrimus.get_all_sections():
+            page_index = 0
             for page in section.pages:
                 if page.filepath is None:
                     continue
 
                 # Try all keys
-                for key in tqdm(keys, desc=f'Section "{section.name}"'):
+                page_index += 1
+                for key in tqdm(keys, desc=f'Section "{section.name}" (page {page_index}/{len(section.pages)})'):
 
                     # Run outguess and retrieve file
                     if key is None:
