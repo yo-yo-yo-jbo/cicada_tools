@@ -724,79 +724,32 @@ class Attempts(object):
                                 ResearchUtils.print_section_data(section, pt)
                                 screen.press_enter()
 
-def research_menu():
+def main():
     """
-        Research menu.
+        Main routine.
     """
 
-    # Run menu forever
-    last_error = None
-    finished_run = False
-    stopped_by_user = False
-    started_run = False
+    # List all static methods in Attempts
+    attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
+    menu_items = [ (k.replace('_', ' ').title(), v.__func__.__doc__.strip().split('\n')[0]) for (k, v) in attempts ]
+
+    # Run forever
     while True:
 
-        # Clear screen
-        screen.clear()
-        if last_error is not None:
-            screen.print_red(f'{last_error}\n')
-            last_error = None
-        if finished_run:
-            screen.print_green('FINISHED METHOD\n')
-            finished_run = False
-        if stopped_by_user:
-            screen.print_yellow('STOPPED BY USER\n')
-            stopped_by_user = False
-        started_run = False
+        # Run menu
+        choice = screen.run_menu('== METHODS AVAILABLE ==', menu_items)
 
-        # List all static methods in Attempts
-        screen.print_yellow('== METHODS AVAILABLE ==')
-        attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
-        dots_max_len = len(str(len(attempts))) + 5 + max([ len(attempt[0]) for attempt in attempts ])
-        index = 0
-        for k, v in attempts:
-            index += 1
-            nice_title = k.replace('_', ' ').title()
-            nice_desc = v.__func__.__doc__.strip().split('\n')[0]
-            screen.print_blue(f'{index}.', end=' ')
-            dots = '.' * (dots_max_len - (len(nice_title) + len(str(index))))
-            print(f'{nice_title} {dots} {nice_desc}')
+        # Handle quitting
+        if choice is None:
+            return
 
-        # Always give the option of quitting
-        print('\nChoose ', end='')
-        screen.print_yellow('Q', end='')
-        print(' to quit, or ', end='')
-        screen.print_yellow('CTRL+C', end='')
-        print(' to stop a method mid-execution.\n')
-
-        # Get choice and run it
+        # Handle a valid choice
         try:
-            choice = input('Choose the method: ').strip()
-            if choice in ('q', 'Q'):
-                break
-            if choice == '':
-                continue
-            assert choice.isdigit(), Exception('Invalid choice')
-            method_index = int(choice)
-            assert method_index > 0 and method_index <= len(attempts), Exception('Invalid choice')
             screen.clear()
-            started_run = True
-            attempts[method_index - 1][1].__func__()
-            started_run = False
-            finished_run = True
-            print('\n')
-            screen.press_enter()
+            attempts[choice][1].__func__()
         except KeyboardInterrupt:
-            stopped_by_user = started_run
-            print('\n')
-            try:
-                screen.press_enter()
-            except KeyboardInterrupt:
-                pass
             continue
-        except Exception as ex:
-            last_error = f'ERROR: {ex}'
 
 if __name__ == '__main__':
-    research_menu()
+    main()
     

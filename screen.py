@@ -109,3 +109,50 @@ def print_solved_text(text):
     # Print
     print(s)
 
+def run_menu(title, menu_items_list):
+    """
+        Runs a menu. The given menu items argument must be a list that maps keys to values.
+    """
+
+    # Run forever
+    last_error = None
+    while True:
+
+        # Print title
+        clear()
+        if last_error is not None:
+            print_red(f'{last_error}\n')
+            last_error = None
+        print_yellow(title)
+
+        # Print menu item
+        dots_max_len = len(str(len(menu_items_list))) + 15 + max([ len(item[0]) for item in menu_items_list ])
+        index = 0
+        for k, v in menu_items_list:
+            index += 1
+            print_blue(f'{index}.', end=' ')
+            dots = '.' * (dots_max_len - (len(k) + len(str(index))))
+            print(f'{k} {dots} {v}')
+
+        # Get user choice
+        print('\nChoose ', end='')
+        print_yellow('Q', end='')
+        print(' to quit, or ', end='')
+        print_yellow('CTRL+C', end='')
+        print(' to get back to main menu.\n')
+
+        # Get choice and return it
+        choice = input('Enter your choice: ').strip()
+        if choice in ('q', 'Q'):
+            return None
+        if choice == '':
+            continue
+        if not choice.isdigit():
+            last_error = 'Invalid choice'
+            continue
+        menu_index = int(choice)
+        if menu_index <= 0 or menu_index > len(menu_items_list):
+            last_error = 'Invalid choice'
+            continue
+        return menu_index - 1
+
