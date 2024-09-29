@@ -785,7 +785,6 @@ class Attempts(object):
                         key_str = '<NO KEY>' if key is None else key
                         screen.print_yellow(f'Key: {key_str}')
                         print(contents)
-                        screen.press_enter() 
 
 def main():
     """
@@ -810,7 +809,9 @@ def main():
             # Handle a valid choice
             screen.clear()
             attempts[choice][1].__func__()
-        
+            screen.print_green('\nEXECUTION DONE')
+            screen.press_enter()
+
         except KeyboardInterrupt:
             continue
 
