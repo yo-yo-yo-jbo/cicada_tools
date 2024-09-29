@@ -7,6 +7,7 @@ import screen
 import subprocess
 import platform
 import os
+import shutil
 
 class ResearchUtils(object):
     """
@@ -137,6 +138,35 @@ class ResearchUtils(object):
             os.startfile(path)
         else:
             subprocess.call(('xdg-open', path))
+
+    @staticmethod
+    def get_command_path(command):
+        """
+            Gets the command path, or returns None if not found.
+        """
+
+        # Find the path
+        path = shutil.which(command)
+        if path is not None:
+            return path
+
+        # Use the PATH environment variable
+        paths = os.environ.get('PATH', None)
+        if paths is None:
+            return None
+
+        # Use both Windows and *NIX style
+        for base_path in paths.replace(':', ';').split(';'):
+            path = os.path.join(base_path, command)
+            if os.path.isfile(path):
+                return path
+            if platform.system() == 'Windows':
+                path += '.exe'
+                if os.path.isfile(path):
+                    return path
+        
+        # Nothing was found
+        return None
 
     @staticmethod
     def iterate_potential_interrupter_indices(processed_text, interrupter_rune='ᚠ'):

@@ -15,6 +15,7 @@ import tempfile
 import gzip
 import shutil
 import sympy
+import subprocess
 
 class Attempts(object):
     """
@@ -723,6 +724,59 @@ class Attempts(object):
                                 print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
                                 ResearchUtils.print_section_data(section, pt)
                                 screen.press_enter()
+
+    @staticmethod
+    def outguess_dictionary_attack():
+        """
+            Performs an Outguess dictionary attack (both English and runes, as well as few selected prime numbers used by Cicada).
+        """
+
+        # Get the outguess path
+        outguess_path = ResearchUtils.get_command_path('outguess')
+        assert outguess_path is not None, Exception('The outguess binary was not found - please install outguess and make sure it\'s in PATH')
+
+        # Get potential rune keys
+        keys = list(ResearchUtils.get_english_dictionary_words(as_runes=True))
+
+        # Add "F" replacements for keys
+        keys += [ k.replace(k[0], RuneUtils.rune_at(0)) for k in keys ]
+        
+        # Add English words (both uppercase and lowecase)
+        english_words = [ w.upper() for w in list(ResearchUtils.get_english_dictionary_words(as_runes=False)) ]
+        english_words += [ w.lower() for w in english_words ]
+        keys += english_words
+
+        # Add specific primes used by Cicada
+        keys += [ '3301', '1033', '761', '167' ]
+
+        # Create a temporary file for outguess
+        temp_file_path = tempfile.mktemp()
+
+        # Iterate all pages that have file paths
+        for section in LiberPrimus.get_all_sections():
+            for page in section.pages:
+                if page.filepath is None:
+                    continue
+
+                # Try all keys
+                for key in keys:
+
+                    # Run outguess and retrieve file
+                    subprocess.run([ outguess_path, '-k', key, '-r', page.filepath, temp_file_path ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    try:
+                        with open(temp_file_path, 'r') as fp:
+                            content = fp.read()
+                    except Exception:
+                        continue
+
+                    # Try either to decode as PGP or just retireve printable data
+                    if len(contents) == 0:
+                        continue
+                    if 'BEGIN PGP SIGNED MESSAGE' in contents or contents.isprintable():
+                        ResearchUtils.print_section_data(section, None)
+                        screen.print_yellow(f'Key: {key}')
+                        print(contents)
+                        screen.press_enter() 
 
 def main():
     """
