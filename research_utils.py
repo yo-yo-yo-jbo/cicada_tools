@@ -13,8 +13,9 @@ class ResearchUtils(object):
         Research utlities.
     """
 
-    # Cache for English words as runes
-    _ENGLISH_WORDS = None
+    # Cache for English words
+    _ENGLISH_WORD_RUNES = None
+    _ENGLISH_WORD_ENGLISH = None
 
     # Cache for unsolved sections
     _UNSOLVED_SECTIONS = None
@@ -45,22 +46,27 @@ class ResearchUtils(object):
         return cls._UNSOVLED_SECTIONS
 
     @classmethod
-    def get_rune_english_dictionary(cls):
+    def get_english_dictionary_words(cls, as_runes=True):
         """
-            Gets runes from an English dictionary.
+            Gets words from an English dictionary.
         """
 
         # Build cache
-        if cls._ENGLISH_WORDS is None:
-            cls._ENGLISH_WORDS = set() 
+        if cls._ENGLISH_WORD_RUNES is None or cls._ENGLISH_WORD_ENGLISH is None:
+            cls._ENGLISH_WORD_RUNES = set()
+            cls._ENGLISH_WORD_ENGLISH = set()
             with open('english_wordlist.txt', 'r') as fp:
                 for word in fp.read().split('\n'):
+                    if len(word) == 0:
+                        continue
+                    cls._ENGLISH_WORD_ENGLISH.add(word)
                     runic = RuneUtils.english_to_runes(word)
-                    if len(runic) > 0:
-                        cls._ENGLISH_WORDS.add(runic)
+                    if len(runic) == 0:
+                        continue
+                    cls._ENGLISH_WORD_RUNES.add(runic)
         
         # Use cache
-        return cls._ENGLISH_WORDS
+        return cls._ENGLISH_WORD_RUNES if as_runes else _ENGLISH_WORD_ENGLISH
 
     @classmethod
     def get_rune_wordlist(cls, use_dictionary=False):
@@ -92,7 +98,7 @@ class ResearchUtils(object):
         if use_dictionary:
 
            # Use cache
-            result = set.union(result, cls.get_rune_english_dictionary())
+            result = set.union(result, cls.get_english_dictionary_words(as_runes=True))
 
         # Return wordlist sorted by word length descending
         return sorted(result, key=len)[::-1]
