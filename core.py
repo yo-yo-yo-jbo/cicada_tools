@@ -100,7 +100,7 @@ class RuneUtils(object):
         """
 
         # Only take runes into account and preserve spaces etc.
-        return ProcessedText(runes).to_latin()
+        return ProcessedText(rune_text=runes).to_latin()
 
     @classmethod
     def english_to_runes(cls, english):
@@ -147,13 +147,18 @@ class ProcessedText(object):
     # Save the runes
     _RUNES = list(RuneUtils.iter_runes())
 
-    def __init__(self, rune_text):
+    def __init__(self, rune_text=None, section=None):
         """
             Creates an instance.
         """
 
-        # Save the original text
-        self._orig = rune_text[:]
+        # Saves the section
+        self.section = section
+
+        # Get the text
+        if rune_text is None and section is None:
+            raise Exception('Must supply either section or rune text')
+        self._orig = section.get_all_text() if rune_text is None else rune_text
 
         # Save processes runes
         self._processed_runes = [ c for c in self._orig if RuneUtils.is_rune(c) ]

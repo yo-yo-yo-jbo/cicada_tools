@@ -31,7 +31,7 @@ class Attempts(object):
         for section in LiberPrimus.get_all_sections():
 
             # Build the processed text
-            processed_text = ProcessedText(section.get_all_text())
+            processed_text = ProcessedText(section=section)
 
             # Calculate the doublets rate
             runes = processed_text.get_runes()
@@ -116,7 +116,7 @@ class Attempts(object):
                     text = text[::-1]
 
                 # Get header words
-                header_pt = ProcessedText(text.split('.')[0])
+                header_pt = ProcessedText(rune_text=text.split('.')[0], section=section)
                 header_words = header_pt.get_rune_words()
                 if len(header_words) == 0:
                     continue
@@ -136,7 +136,7 @@ class Attempts(object):
                                 curr = sympy.nextprime(curr)
 
                             # Check for primes
-                            processed_text = ProcessedText(' '.join(header_words))
+                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
                             KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
                             pt_header_words = processed_text.get_rune_words()
                             if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
@@ -145,7 +145,7 @@ class Attempts(object):
 
                             # Check for abs(3301 - primes)
                             key_abs = [ abs(3301 - i) for i in key ]
-                            processed_text = ProcessedText(' '.join(header_words))
+                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
                             KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(processed_text)
                             pt_header_words = processed_text.get_rune_words()
                             if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
@@ -154,7 +154,7 @@ class Attempts(object):
 
                             # Check Totient of primes
                             key = [ i - 1 for i in key ]
-                            processed_text = ProcessedText(' '.join(header_words))
+                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
                             KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
                             pt_header_words = processed_text.get_rune_words()
                             if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
@@ -163,7 +163,7 @@ class Attempts(object):
 
                             # Check for abs(3301 - tot(primes))
                             key_abs = [ abs(3301 - i) for i in key ]
-                            processed_text = ProcessedText(' '.join(header_words))
+                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
                             KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(processed_text)
                             pt_header_words = processed_text.get_rune_words()
                             if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
@@ -172,7 +172,7 @@ class Attempts(object):
 
                             # Build mirpe key
                             key = [ int(str(i + 1)[::-1]) for i in key ]
-                            processed_text = ProcessedText(' '.join(header_words))
+                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
                             KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
                             pt_header_words = processed_text.get_rune_words()
                             if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
@@ -202,14 +202,14 @@ class Attempts(object):
                     for emirp_val in (False, True):
 
                         # Try reversing and then run totient index manipulation
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         ReverseTransformer().transform(pt)
                         TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             ResearchUtils.print_section_data(section, processed_text)
 
                         # Try without reversing
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             ResearchUtils.print_section_data(section, processed_text)
@@ -239,13 +239,13 @@ class Attempts(object):
             for add in (False, True):
 
                 # Try decryption
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add, keystream=iter(MISSING_PRIMES_2013)).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     ResearchUtils.print_section_data(section, pt)
 
                 # Try with Emirps
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add, keystream=iter(emirp_ks)).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     ResearchUtils.print_section_data(section, pt)
@@ -278,7 +278,7 @@ class Attempts(object):
             for key in tqdm(keys, desc=f'Section {section.name}'):
               
                 # Attempt Vigenere
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 VigenereTransformer(key=key).transform(pt)
                 if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                     print(f'Vigenere Key="{key}"')
@@ -291,7 +291,7 @@ class Attempts(object):
                     for use_gp in (False, True):
 
                         # Apply Autokey
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             print(f'Autokey key="{key}" mode={mode}')
@@ -304,7 +304,7 @@ class Attempts(object):
                             ResearchUtils.print_section_data(section, pt)
 
                         # Start from reversing and then apply Autokey
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         ReverseTransformer().transform(pt)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
@@ -370,14 +370,14 @@ class Attempts(object):
                 for add_option in (False, True):
 
                     # Try sequence as-is
-                    pt = ProcessedText(section.get_all_text())
+                    pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(sequences[seq]), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         print(f'OEIS sequence {seq}')
                         ResearchUtils.print_section_data(section, pt)
 
                     # Try a special function on the sequence which comes from the Cicada page 15 spiral
-                    pt = ProcessedText(section.get_all_text())
+                    pt = ProcessedText(section=section)
                     func_seq = [ abs(3301 - elem) for elem in sequences[seq] ]
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
@@ -398,49 +398,49 @@ class Attempts(object):
             for add_option in (False, True):
 
                 # Try on primes 
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 Page15FuncPrimesTransformer(add=add_option).transform(pt)
                 print(f'Func15(primes) transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try on Fibonacci-indexed primes
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 Page15FiboPrimesTransformer(add=add_option).transform(pt)
                 print(f'Func15(fibo-primes) transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try on Fibonacci-indexed emirps
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 Page15FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
                 print(f'Func15(fibo-emirps) transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try the Totient of the Fibonacci-indexed primes
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:sympy.totient(x), MathUtils.get_fibo_primes())).transform(pt)
                 print(f'Totient(fibo-primes) transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
 
                 # Try the Totient of the function from page 15 on Fibonacci indexed primes
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:abs(3301 - sympy.totient(x)), MathUtils.get_fibo_primes())).transform(pt)
                 print(f'Func15(Totient(fibo-primes)) transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
               
                 # Try on Fibonacci-indexed primes without the page 15 function
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 FiboPrimesTransformer(add=add_option).transform(pt)
                 print(f'Fibo-primes transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
                 screen.press_enter()
  
                 # Try on Fibonacci-indexed emirps without the page 15 function
-                pt = ProcessedText(section.get_all_text())
+                pt = ProcessedText(section=section)
                 FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
                 print(f'Fibo-primes transformation (add={add_option}):')
                 ResearchUtils.print_section_data(section, pt)
@@ -465,7 +465,7 @@ class Attempts(object):
                 for add_option in (False, True):
 
                     # Use as a keystream
-                    pt = ProcessedText(section.get_all_text())
+                    pt = ProcessedText(section=section)
                     SpiralSquareKeystreamTransformer(matrix=square, add=add_option).transform(pt)
                     print(f'Square {square_index} (add={add_option}):')
                     ResearchUtils.print_section_data(section, pt)
@@ -494,7 +494,7 @@ class Attempts(object):
 
                     # Use Hill cipher
                     square_index += 1
-                    pt = ProcessedText(section.get_all_text())
+                    pt = ProcessedText(section=section)
                     HillCipherTransformer(matrix=square, inverse=inverse_option).transform(pt)
                     print(f'Square {square_index} (inverse={inverse_option}):')
                     ResearchUtils.print_section_data(section, pt)
@@ -518,7 +518,7 @@ class Attempts(object):
                     for use_plaintext in (False, True):
 
                         # Use an Autokey
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         AutokeyGpTransformer(add=add_option, primer_value=primer_value, use_plaintext=use_plaintext).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             print(f'AutokeyGP (primer_value={primer_value}, add={add}, use_plaintext={use_plaintext}):')
@@ -545,7 +545,7 @@ class Attempts(object):
         for section in LiberPrimus.get_all_sections():
 
             # Process all text
-            processed_text = ProcessedText(section.get_all_text())
+            processed_text = ProcessedText(section=section)
             for transformer in section.transformers:
                 transformer.transform(processed_text)
             
@@ -583,7 +583,7 @@ class Attempts(object):
                 # Use a keystream
                 stream_index += 1
                 for add_option in (False, True):
-                    pt = ProcessedText(section.get_all_text())
+                    pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
                     if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                         print(f'Stream {stream_index} (add={add_option}):')
@@ -600,7 +600,7 @@ class Attempts(object):
         for section in ResearchUtils.get_unsolved_sections():
 
             # Conclude if the number of runes is a square
-            pt = ProcessedText(section.get_all_text())
+            pt = ProcessedText(section=section)
             runes = pt.get_runes()
             if not MathUtils.is_square(len(runes)):
                 continue
@@ -625,7 +625,7 @@ class Attempts(object):
         for section in ResearchUtils.get_unsolved_sections():
 
             # Perform modular inverse
-            pt = ProcessedText(section.get_all_text())
+            pt = ProcessedText(section=section)
             ModInvTransformer(use_shift_counter=True).transform(pt)
             print(f'Modular inverse')
             ResearchUtils.print_section_data(section, pt)
@@ -655,7 +655,7 @@ class Attempts(object):
                     for indices_apart in (13, 11):
 
                         # Use the prime sequence
-                        pt = ProcessedText(section.get_all_text())
+                        pt = ProcessedText(section=section)
                         PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=indices_apart).transform(pt)
                         if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                             print(f'Primes {indices_apart} apart (start_value={start_value}, add={add_option}):')
@@ -717,7 +717,7 @@ class Attempts(object):
                         for add_option in (False, True):
 
                             # Try decryption
-                            pt = ProcessedText(section.get_all_text())
+                            pt = ProcessedText(section=section)
                             KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
                             if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
                                 print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
