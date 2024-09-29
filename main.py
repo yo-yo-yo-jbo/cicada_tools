@@ -737,16 +737,17 @@ def main():
     while True:
 
         # Run menu
-        choice = screen.run_menu('== METHODS AVAILABLE ==', menu_items)
-
-        # Handle quitting
-        if choice is None:
-            return
-
-        # Handle a valid choice
         try:
+            choice = screen.run_menu('== METHODS AVAILABLE ==', menu_items)
+
+            # Handle quitting
+            if choice is None:
+                return
+
+            # Handle a valid choice
             screen.clear()
             attempts[choice][1].__func__()
+        
         except KeyboardInterrupt:
             continue
 
