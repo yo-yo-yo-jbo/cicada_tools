@@ -169,13 +169,13 @@ class ResearchUtils(object):
         return None
 
     @staticmethod
-    def iterate_potential_interrupter_indices(processed_text, interrupter_rune='ᚠ'):
+    def iterate_potential_interrupter_indices(rune_text, interrupter_rune='ᚠ'):
         """
             Iterates all the potential interrupter indices.
         """
 
         # Finds all potential indices
-        runes = processed_text.get_runes()
+        runes = ProcessedText(rune_text=rune_text).get_runes()
         potential_interrupters = [ i for i in range(len(runes)) if runes[i] == interrupter_rune ]
 
         # Iterate

@@ -663,6 +663,49 @@ class HillCipherTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result[:len(runes)])
 
+class FibonacciKeystreamTransformer(TransformerBase):
+    """
+        Creates a keystream out of Fibonacci sequence.
+    """
+
+    def __init__(self, add=False, start_a=0, start_b=1, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Save members
+        self._interrupt_indices = interrupt_indices
+        self._add = add
+
+        # Saves the sequence
+        self._sequence = [ start_a, start_b ]
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+        
+        # Extend sequence
+        runes = processed_text.get_runes()
+        while len(self._sequence) < len(runes):
+            self._sequence.append(self._sequence[-1] + self._sequence[-2])
+
+        # Apply sequence
+        result = []
+        rune_index = 0
+        seq_index = 0
+        for rune in runes:
+            if rune_index in self._interrupt_indices:
+                result.append(rune)
+            else:
+                val = self._sequence[seq_index]
+                if not self._add:
+                    val = -val
+                result.append(RuneUtils.rune_at((RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()))
+
+        # Apply result
+        processed_text.set_runes(result)
+
 class ModInvTransformer(TransformerBase):
     """
         Performs modular inverse of each rune.

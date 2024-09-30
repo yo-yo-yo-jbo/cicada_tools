@@ -127,7 +127,7 @@ class Attempts(object):
                     for start_val in range(start_val_limit):
                        
                         # Take interrupters into account
-                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(header_pt):
+                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(''.join(header_pt.get_runes())):
 
                             # Build primes key
                             key = []
@@ -787,6 +787,35 @@ class Attempts(object):
                         key_str = '<NO KEY>' if key is None else key
                         screen.print_yellow(f'Key: {key_str}')
                         print(contents)
+
+    @staticmethod
+    def fibonacci_series_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8):
+        """
+            Performs a keystream manipulation on runes based on Fibonacci sequence starting at every two numbers between 0 and 28.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = ResearchUtils.get_rune_wordlist(True)
+
+        # Iterate all sections
+        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+
+            # Iterate all start values
+            for start_a in range(28):
+                for start_b in range(28):
+
+                    # Either add or substruct
+                    for add_option in (False, True):
+
+                        # Consider interrupters into account
+                        pt = ProcessedText(section=section)
+                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(''.join(pt.get_runes())):
+
+                            # Apply keystream
+                            FibonacciKeystreamTransformer(add=add_option, start_a=start_a, start_b=start_b, interrupt_indices=interrupt_indices).transform(pt)
+                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                                print(f'FibonacciKeystream (start_a={start_a}, start_b={start_b}, add={add}):') 
+                                ResearchUtils.print_section_data(section, pt)
 
 def main():
     """
