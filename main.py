@@ -798,27 +798,31 @@ class Attempts(object):
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all sections
-        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all start values
-            for start_a in range(28):
-                for start_b in range(28):
+            with tqdm(total=29*29, desc=f'Section "{section.name}"') as pbar:
+                for start_a in range(28):
+                    for start_b in range(28):
 
-                    # Either add or substruct
-                    for add_option in (False, True):
+                        # Either add or substruct
+                        for add_option in (False, True):
 
-                        # Consider interrupters into account
-                        pt = ProcessedText(section=section)
-                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(pt):
+                            # Consider interrupters into account
+                            pt = ProcessedText(section=section)
+                            for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(pt):
 
-                            # Revert processed text
-                            pt.revert()
+                                # Revert processed text
+                                pt.revert()
 
-                            # Apply keystream
-                            FibonacciKeystreamTransformer(add=add_option, start_a=start_a, start_b=start_b, interrupt_indices=interrupt_indices).transform(pt)
-                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                                print(f'FibonacciKeystream (start_a={start_a}, start_b={start_b}, add={add}):') 
-                                ResearchUtils.print_section_data(section, pt)
+                                # Apply keystream
+                                FibonacciKeystreamTransformer(add=add_option, start_a=start_a, start_b=start_b, interrupt_indices=interrupt_indices).transform(pt)
+                                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                                    print(f'FibonacciKeystream (start_a={start_a}, start_b={start_b}, add={add}):') 
+                                    ResearchUtils.print_section_data(section, pt)
+
+                        # Update progress bar
+                        pbar.update(1)
 
 def main():
     """
