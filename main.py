@@ -789,7 +789,7 @@ class Attempts(object):
                         print(contents)
 
     @staticmethod
-    def fibonacci_series_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8):
+    def fibonacci_series_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8, consider_interrupters=False):
         """
             Performs a keystream manipulation on runes based on Fibonacci sequence starting at every two numbers between 0 and 28.
         """
@@ -802,15 +802,16 @@ class Attempts(object):
 
             # Iterate all start values
             with tqdm(total=29*29, desc=f'Section "{section.name}"') as pbar:
-                for start_a in range(28):
-                    for start_b in range(28):
+                for start_a in range(29):
+                    for start_b in range(29):
 
                         # Either add or substruct
                         for add_option in (False, True):
 
-                            # Consider interrupters into account
+                            # Consider interrupters
                             pt = ProcessedText(section=section)
-                            for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(pt):
+                            gen = ResearchUtils.iterate_potential_interrupter_indices(pt) if consider_interrupters else [[]]
+                            for interrupt_indices in gen:
 
                                 # Revert processed text
                                 pt.revert()
