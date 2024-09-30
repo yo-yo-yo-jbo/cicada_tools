@@ -789,7 +789,7 @@ class Attempts(object):
                         print(contents)
 
     @staticmethod
-    def fibonacci_series_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8, consider_interrupters=False):
+    def fibonacci_sequence_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8, consider_interrupters=False):
         """
             Performs a keystream manipulation on runes based on Fibonacci sequence starting at every two numbers between 0 and 28.
         """
