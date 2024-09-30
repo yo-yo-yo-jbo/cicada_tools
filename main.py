@@ -847,8 +847,9 @@ def main():
 
             # Handle a valid choice
             screen.clear()
+            screen.print_yellow(f'== {menu_items[choice][0]} ==\n')
             attempts[choice][1].__func__()
-            screen.print_green('\nEXECUTION DONE')
+            screen.print_green('\n\nEXECUTION DONE')
             screen.press_enter()
 
         except KeyboardInterrupt:
