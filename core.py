@@ -162,8 +162,18 @@ class ProcessedText(object):
 
         # Save processes runes
         self._processed_runes = [ c for c in self._orig if RuneUtils.is_rune(c) ]
+        self._orig_runes = self._processed_runes[:]
 
         # Currently not marked as unsolved
+        self._is_unsolved = False
+
+    def revert(self):
+        """
+            Reverts all changes.
+        """
+
+        # Revert
+        self._processed_runes = self._orig_runes[:]
         self._is_unsolved = False
 
     @staticmethod

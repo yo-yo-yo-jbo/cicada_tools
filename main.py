@@ -127,7 +127,7 @@ class Attempts(object):
                     for start_val in range(start_val_limit):
                        
                         # Take interrupters into account
-                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(''.join(header_pt.get_runes())):
+                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(header_pt):
 
                             # Build primes key
                             key = []
@@ -809,7 +809,10 @@ class Attempts(object):
 
                         # Consider interrupters into account
                         pt = ProcessedText(section=section)
-                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(''.join(pt.get_runes())):
+                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(pt):
+
+                            # Revert processed text
+                            pt.revert()
 
                             # Apply keystream
                             FibonacciKeystreamTransformer(add=add_option, start_a=start_a, start_b=start_b, interrupt_indices=interrupt_indices).transform(pt)
