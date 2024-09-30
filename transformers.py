@@ -80,6 +80,22 @@ class MathUtils(object):
             for i in range(indices_apart):
                 curr_prime = MathUtils.find_next_prime(curr_prime)
 
+    @staticmethod
+    def gen_totients(start_at_0=False):
+        """
+            Generate totients as a sequence.
+        """
+
+        # Optionally start at 0
+        if start_at_0:
+            yield 0
+
+        # Generate forever
+        n = 1
+        while True:
+            yield MathUtils.totient(n)
+            n += 1
+
     @classmethod
     def get_fibo_primes(cls):
         """
@@ -566,6 +582,19 @@ class Page15FuncPrimesTransformer(KeystreamTransformer):
 
         # Call super
         super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices)
+
+class TotientKeystreamTransformer(KeystreamTransformer):
+    """
+        Uses the Totient of naturals as a sequence. Can optionally also include tot(0) = 0 (which is normally undefined).
+    """
+
+    def __init__(self, add=False, start_at_0=False, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(add=add, keystream=MathUtils.gen_totients(start_at_0), interrupt_indices=interrupt_indices)
 
 class FiboPrimesTransformer(KeystreamTransformer):
     """

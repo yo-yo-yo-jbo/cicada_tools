@@ -221,6 +221,30 @@ class Attempts(object):
                             ResearchUtils.print_section_data(section, processed_text)
 
     @staticmethod
+    def totient_keystream(word_threshold=6, ioc_threshold=1.8):
+        """
+            Uses the Totient function of natural numbers as a keystream.
+        """
+
+        # Get an extended wordlist for a measurement
+        wordlist = ResearchUtils.get_rune_wordlist(True)
+
+        # Iterate all sections
+        for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
+
+                # Try adding or substructing
+                for add_option in (False, True):
+
+                    # Start at zero or not
+                    for start_at_0 in (False, True):
+
+                        # Apply keystream
+                        pt = ProcessedText(section=section)
+                        TotientKeystreamTransformer(add=add_option, start_at_0=start_at_0).transform(pt)
+                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
+                            ResearchUtils.print_section_data(section, processed_text)
+
+    @staticmethod
     def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
         """
             Attempts to use the Cicada 3301 message missing primes from 2013 as a keystream.
@@ -849,7 +873,7 @@ def main():
             screen.clear()
             screen.print_yellow(f'== {menu_items[choice][0]} ==\n')
             attempts[choice][1].__func__()
-            screen.print_green('\n\nEXECUTION DONE')
+            screen.print_green('\n\nEXECUTION COMPLETE\n')
             screen.press_enter()
 
         except KeyboardInterrupt:
