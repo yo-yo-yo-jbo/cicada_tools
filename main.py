@@ -237,7 +237,7 @@ class Attempts(object):
                         # Apply keystream
                         pt = ProcessedText(section=section)
                         TotientKeystreamTransformer(add=add_option, start_at_0=start_at_0).transform(pt)
-                        pt.check_measurements()
+                        pt.check_measurements(add=add_option, start_at_0=start_at_0)
 
     @measurement(PrefixWordsMeasurement(threshold=6))
     @measurement(IocMeasurement(threshold=1.8)) 
