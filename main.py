@@ -719,7 +719,7 @@ class Attempts(object):
         keys += english_words
 
         # Add specific primes used by Cicada
-        keys += [ '3301', '1033', '761', '167' ]
+        keys += [ '3301', '1033', '761', '167', '1595277641' ]
 
         # Add an empty key and the option to not use a key
         keys.append('')
