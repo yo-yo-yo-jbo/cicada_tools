@@ -97,7 +97,7 @@ class Attempts(object):
             screen.press_enter()
 
     @staticmethod
-    def sentence_cribbing(skip_limit=3301, start_val_limit=3301):
+    def sentence_cribbing(skip_limit=3301, start_val_limit=3301, consider_interrupters=False):
         """
             Attempts cribbing the first sentence automatically, assuming a prime-related ascending key.
             Assumes interrupters might occur. Also attempts to use emirps (Decimal-reversal of primes).
@@ -128,14 +128,15 @@ class Attempts(object):
                     for start_val in range(start_val_limit):
                        
                         # Take interrupters into account
-                        for interrupt_indices in ResearchUtils.iterate_potential_interrupter_indices(header_pt):
+                        gen = ResearchUtils.iterate_potential_interrupter_indices(header_pt) if consider_interrupters else [[]]
+                        for interrupt_indices in gen:
 
                             # Build primes key
                             key = []
                             curr = start_val
                             while len(key) < header_pt.get_num_of_runes():
                                 key.append(curr)
-                                curr = sympy.nextprime(curr)
+                                curr = MathUtils.find_next_prime(curr)
 
                             # Check for primes
                             processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
