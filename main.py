@@ -810,9 +810,9 @@ class Attempts(object):
         for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all start values
-            with tqdm(total=29*29, desc=f'Section "{section.name}"') as pbar:
-                for start_a in range(29):
-                    for start_b in range(29):
+            with tqdm(total=RuneUtils.size() * RuneUtils.size(), desc=f'Section "{section.name}"') as pbar:
+                for start_a in range(RuneUtils.size()):
+                    for start_b in range(RuneUtils.size()):
 
                         # Either add or substruct
                         for add_option in (False, True):
@@ -831,6 +831,31 @@ class Attempts(object):
 
                         # Update progress bar
                         pbar.update(1)
+
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.8)) 
+    @staticmethod
+    def alberti_cipher_bruteforce(max_period=26):
+        """
+            Attempts to brute-force Alberti cipher configurations.
+        """
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Iterate all start values
+            with tqdm(total=RuneUtils.size() * (RuneUtils.size() - 1) * max_period, desc=f'Section "{section.name}"') as pbar:
+                for period in range(1, max_period + 1):
+                    for periodic_increment in range(1, RuneUtils.size()):
+                        for initial_shift in range(RuneUtils.size()):
+
+                            # Run cipher
+                            pt = ProcessedText(section=section)
+                            AlbertiTransformer(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift).transform(pt)
+                            pt.check_measurements(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift)
+
+                            # Update progress bar
+                            pbar.update(1)
 
 def main():
     """

@@ -811,7 +811,7 @@ class AutokeyGpTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result)
 
-def AlbertiTransformer(TransformerBase):
+class AlbertiTransformer(TransformerBase):
     """
         Runs an Alberti cipher.
     """
@@ -824,6 +824,7 @@ def AlbertiTransformer(TransformerBase):
         # Validations
         assert periodic_increment > 0, Exception('Periodic increment must be a positive integer')
         assert periodic_increment < RuneUtils.size(), Exception('Periodic increment too big')
+        assert period > 0, Exception('Period must be strictly positive')
 
         # Save members
         self._mobile_disk = list(range(RuneUtils.size()))
@@ -832,7 +833,7 @@ def AlbertiTransformer(TransformerBase):
         self._periodic_increment = periodic_increment
 
         # Use the initial shift
-        self._mobile_disk = self.mobile_disk[initial_shift:] + self.mobile_disk[:initial_shift]
+        self._mobile_disk = self._mobile_disk[initial_shift:] + self._mobile_disk[:initial_shift]
 
     def transform(self, processed_text):
         """
