@@ -272,7 +272,6 @@ class ProcessedText(object):
         # Indicate all words are in the wordlist by just returning the number of words plus one
         return word_index + 1
 
-
     def get_rune_text(self, punct_translation=True):
         """
             Gets the rune text.
