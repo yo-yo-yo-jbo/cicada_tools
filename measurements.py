@@ -124,3 +124,30 @@ class PrefixWordsMeasurement(MeasurementBase):
         # Returns the number of matched words
         return processed_text.get_first_non_wordlist_word_index(self._wordlist)
 
+class AllWordsMeasurement(MeasurementBase):
+    """
+        A Boolean measurement that indicates all words are in a dictionary.
+    """
+
+    def __init__(self):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(threshold=0)
+
+        # Save the wordlist
+        self._wordlist = ResearchUtils.get_english_dictionary_words(as_runes=True)
+
+    def run_measurement(self, processed_text):
+        """
+            Runs a mesaurement on a processed text and returns a result.
+        """
+
+        # Indicates success or failure which will be matched against the "threshold" of zero
+        if processed_text.get_first_non_wordlist_word_index(self._wordlist) > len(processed_text.get_rune_words()):
+            return 1
+        else:
+            return -1
+
