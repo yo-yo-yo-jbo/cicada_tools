@@ -4,6 +4,7 @@ from core import *
 from secrets import *
 from transformers import *
 from liber_primus import LiberPrimus
+from measurements import *
 import screen
 
 import os
@@ -180,15 +181,14 @@ class Attempts(object):
                                 plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
                                 print(f'Emirps (Decimal-reverse primes) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
-    def double_tot_index_with_reversing(word_threshold=6, ioc_threshold=1.8):
+    def double_tot_index_with_reversing():
         """
             Adds or substructs either tot(primes) or tot(tot(primes)), on both normal text as well as reversed text.
             If the number of prefixed words are above the given threshold or the IOC is above the given threshold, print result.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all sections
         for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
@@ -206,28 +206,24 @@ class Attempts(object):
                         pt = ProcessedText(section=section)
                         ReverseTransformer().transform(pt)
                         TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            ResearchUtils.print_section_data(section, processed_text)
+                        pt.check_measurements()
 
                         # Try without reversing
-                        pt = ProcessedText(section=section)
+                        pt.revert()
                         TotientPrimeTransformer(tot_calls=tot_call_count, add=add_option, emirp=emirp_val).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            ResearchUtils.print_section_data(section, processed_text)
+                        pt.check_measurements()
 
                         # Reverse after totient index manipulation
                         ReverseTransformer().transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            ResearchUtils.print_section_data(section, processed_text)
+                        pt.check_measurements()
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
-    def totient_keystream(word_threshold=6, ioc_threshold=1.8):
+    def totient_keystream():
         """
             Uses the Totient function of natural numbers as a keystream.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all sections
         for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
@@ -241,21 +237,19 @@ class Attempts(object):
                         # Apply keystream
                         pt = ProcessedText(section=section)
                         TotientKeystreamTransformer(add=add_option, start_at_0=start_at_0).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            ResearchUtils.print_section_data(section, processed_text)
+                        pt.check_measurements()
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
-    def use_2013_missing_primes(word_threshold=6, ioc_threshold=1.8):
+    def use_2013_missing_primes():
         """
             Attempts to use the Cicada 3301 message missing primes from 2013 as a keystream.
             Also attempts to use emirps (Decimal-reversed primes).
         """
 
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
-
         # Build the Emirp keystream
-        emirp_ks = [ int(str(p[::-1])) for p in MISSING_PRIMES_2013 ]
+        emirp_ks = [ int(str(p)[::-1]) for p in MISSING_PRIMES_2013 ]
 
         # Iterate all sections 
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
@@ -266,27 +260,23 @@ class Attempts(object):
                 # Try decryption
                 pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add, keystream=iter(MISSING_PRIMES_2013)).transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    ResearchUtils.print_section_data(section, pt)
+                pt.check_measurements()
 
                 # Try with Emirps
                 pt = ProcessedText(section=section)
                 KeystreamTransformer(add=add, keystream=iter(emirp_ks)).transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    ResearchUtils.print_section_data(section, pt)
+                pt.check_measurements()
 
-
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
-    def autokey_and_vigenere_bruteforce_with_reversing(word_threshold=6, ioc_threshold=1.8, min_key_len=6):
+    def autokey_and_vigenere_bruteforce_with_reversing(min_key_len=6):
         """
             Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
             Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
             Also tries reversing all keys.
             Uses all supported modes of Autokey: plaintext, cipehrtext or alternating (starting from either plaintext or ciphertext, or using the Mobius function).
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Build potential keys
         keys = ResearchUtils.get_rune_wordlist()
@@ -305,9 +295,7 @@ class Attempts(object):
                 # Attempt Vigenere
                 pt = ProcessedText(section=section)
                 VigenereTransformer(key=key).transform(pt)
-                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                    print(f'Vigenere Key="{key}"')
-                    ResearchUtils.print_section_data(section, pt)
+                pt.check_measurements(mode='Vigenere', key=key)
 
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
@@ -315,35 +303,30 @@ class Attempts(object):
                     # Either try or do not try GP-mode
                     for use_gp in (False, True):
 
+                        # Revert previous runs
+                        pt.revert()
+
                         # Apply Autokey
-                        pt = ProcessedText(section=section)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Autokey key="{key}" mode={mode}')
-                            ResearchUtils.print_section_data(section, pt)
+                        pt.check_measurements(mode=f'Autokey {mode}', key=key)
 
                         # Reverse
                         ReverseTransformer().transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Autokey key="{key}" mode={mode} and then reversing')
-                            ResearchUtils.print_section_data(section, pt)
+                        pt.check_measurements(mode=f'Autokey {mode} then reversing', key=key)
 
                         # Start from reversing and then apply Autokey
-                        pt = ProcessedText(section=section)
+                        pt.revert()
                         ReverseTransformer().transform(pt)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Autokey key="{key}" mode={mode} on reversed text')
-                            ResearchUtils.print_section_data(section, pt)
+                        pt.check_measurements(mode=f'Reversing then Autokey {mode}', key=key)
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
-    def oeis_keystream(word_threshold=6, ioc_threshold=1.8):
+    def oeis_keystream():
         """
             Tries all OEIS sequences on each section, using them as keystreams.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Check if download is necessary
         oeis_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'oeis.txt')
@@ -397,18 +380,16 @@ class Attempts(object):
                     # Try sequence as-is
                     pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(sequences[seq]), add=add_option).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'OEIS sequence {seq}')
-                        ResearchUtils.print_section_data(section, pt)
+                    pt.check_measurements(sequence=seq)
 
                     # Try a special function on the sequence which comes from the Cicada page 15 spiral
-                    pt = ProcessedText(section=section)
+                    pt.revert()
                     func_seq = [ abs(3301 - elem) for elem in sequences[seq] ]
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'OEIS sequence {seq} after abs(3301-x) on it')
-                        ResearchUtils.print_section_data(section, pt)
+                    pt.check_measurements(mode='Func15', sequence=seq)
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
     def page15_function_keystream():
         """
@@ -425,52 +406,40 @@ class Attempts(object):
                 # Try on primes 
                 pt = ProcessedText(section=section)
                 Page15FuncPrimesTransformer(add=add_option).transform(pt)
-                print(f'Func15(primes) transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                pt.check_measurements(mode='Primes', add=add_option)
 
                 # Try on Fibonacci-indexed primes
-                pt = ProcessedText(section=section)
+                pt.revert()
                 Page15FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'Func15(fibo-primes) transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                pt.check_measurements(mode='Func15-fibonacci-primes', add=add_option)
 
                 # Try on Fibonacci-indexed emirps
-                pt = ProcessedText(section=section)
+                pt.revert()
                 Page15FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
-                print(f'Func15(fibo-emirps) transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                pt.check_measurements(mode='Func15-fibonacci-emirps', add=add_option)
 
                 # Try the Totient of the Fibonacci-indexed primes
-                pt = ProcessedText(section=section)
+                pt.revert()
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:sympy.totient(x), MathUtils.get_fibo_primes())).transform(pt)
-                print(f'Totient(fibo-primes) transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
-
+                pt.check_measurements(mode='Totient-fibonacci-primes', add=add_option)
+                
                 # Try the Totient of the function from page 15 on Fibonacci indexed primes
-                pt = ProcessedText(section=section)
+                pt.revert()
                 KeystreamTransformer(add=add_option, keystream=map(lambda x:abs(3301 - sympy.totient(x)), MathUtils.get_fibo_primes())).transform(pt)
-                print(f'Func15(Totient(fibo-primes)) transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                pt.check_measurements(mode='Func15-totient-fibonacci-primes', add=add_option)
               
                 # Try on Fibonacci-indexed primes without the page 15 function
-                pt = ProcessedText(section=section)
+                pt.revert()
                 FiboPrimesTransformer(add=add_option).transform(pt)
-                print(f'Fibo-primes transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
+                pt.check_measurements(mode='Fibonacci-primes', add=add_option) 
  
                 # Try on Fibonacci-indexed emirps without the page 15 function
-                pt = ProcessedText(section=section)
+                pt.revert()
                 FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
-                print(f'Fibo-primes transformation (add={add_option}):')
-                ResearchUtils.print_section_data(section, pt)
-                screen.press_enter()
- 
+                pt.check_measurements(mode='Fibonacci-emirps', add=add_option)
+
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
     def spiral_square_keystream():
         """
@@ -492,10 +461,10 @@ class Attempts(object):
                     # Use as a keystream
                     pt = ProcessedText(section=section)
                     SpiralSquareKeystreamTransformer(matrix=square, add=add_option).transform(pt)
-                    print(f'Square {square_index} (add={add_option}):')
-                    ResearchUtils.print_section_data(section, pt)
-                    screen.press_enter()
-    
+                    pt.check_measurements(square=square_index, add=add_option)
+ 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
     def hill_cipher():
         """
@@ -521,18 +490,15 @@ class Attempts(object):
                     square_index += 1
                     pt = ProcessedText(section=section)
                     HillCipherTransformer(matrix=square, inverse=inverse_option).transform(pt)
-                    print(f'Square {square_index} (inverse={inverse_option}):')
-                    ResearchUtils.print_section_data(section, pt)
-                    screen.press_enter()
+                    pt.check_measurements(square=square_index, inverse=inverse_option)
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
-    def gp_value_autokey(word_threshold=6, ioc_threshold=1.8):
+    def gp_value_autokey():
         """
             Attempts to use the GP-value of previous runes as an Autokey, in both modes (plaintext, ciphertext).
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all unsolved sections
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
@@ -545,21 +511,17 @@ class Attempts(object):
                         # Use an Autokey
                         pt = ProcessedText(section=section)
                         AutokeyGpTransformer(add=add_option, primer_value=primer_value, use_plaintext=use_plaintext).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'AutokeyGP (primer_value={primer_value}, add={add}, use_plaintext={use_plaintext}):')
-                            ResearchUtils.print_section_data(section, pt)
-                            screen.press_enter()
+                        pt.check_measurements(primer_value=primer_value, add=add_option, use_plaintext=use_plaintext)
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
-    def gp_sum_keystream(word_threshold=6, ioc_threshold=1.8):
+    def gp_sum_keystream():
         """
             Attempts to use the GP-sum of each solved section words as a keystream.
             Also attempts to use the GP-sums of entire solved LP1 as a keystream.
             Also attempts to use line GP-sums of solved sections from LP1.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Build dictionary mapping solved sections to GP-sum based streams
         lp1_keystream_words = []
@@ -610,11 +572,10 @@ class Attempts(object):
                 for add_option in (False, True):
                     pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
-                    if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                        print(f'Stream {stream_index} (add={add_option}):')
-                        ResearchUtils.print_section_data(section, pt)
-                        screen.press_enter()
+                    pt.check_measurements(stream=stream_index, add=add_option)
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
     def square_sections_spiral():
         """
@@ -636,10 +597,10 @@ class Attempts(object):
 
             # Walk the matrix in a spiral
             pt.set_runes([ RuneUtils.rune_at(index) for index in MathUtils.matrix_to_spiral_stream(matrix) ])
-            print(f'Spiral rearrangement on section (size={side}x{side})')
-            ResearchUtils.print_section_data(section, pt)
-            screen.press_enter()
+            pt.check_measurements(size=f'{side}x{side}')
 
+    @measurement(PrefixWordsMeasurement(threshold=6))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
     def modular_inverse():
         """
@@ -652,20 +613,17 @@ class Attempts(object):
             # Perform modular inverse
             pt = ProcessedText(section=section)
             ModInvTransformer(use_shift_counter=True).transform(pt)
-            print(f'Modular inverse')
-            ResearchUtils.print_section_data(section, pt)
-            screen.press_enter()
+            pt.check_measurements()
 
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.8))
     @staticmethod
-    def primes_indices_apart(word_threshold=4, ioc_threshold=1.8):
+    def primes_indices_apart():
         """
             Performs a keystream manipulation on runes based on prime numbers that are 11 or 13 indices apart.
             This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
             The number 13 was derived based on IoC analysis on several pages, specifically 54-55.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all sections
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
@@ -682,17 +640,11 @@ class Attempts(object):
                         # Use the prime sequence
                         pt = ProcessedText(section=section)
                         PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=indices_apart).transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Primes {indices_apart} apart (start_value={start_value}, add={add_option}):')
-                            ResearchUtils.print_section_data(section, pt)
-                            screen.press_enter()
+                        pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart)
 
                         # Try Atbash
                         AtbashTransformer().transform(pt)
-                        if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                            print(f'Primes {indices_apart} apart with Atbash (start_value={start_value}, add={add_option}):')
-                            ResearchUtils.print_section_data(section, pt)
-                            screen.press_enter()
+                        pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart, mode='Atbash')
 
                         # Revert Atbash
                         AtbashTransformer().transform(pt)
@@ -700,13 +652,12 @@ class Attempts(object):
                         # Try shifting
                         for shift_value in range(1, RuneUtils.size()):
                             ShiftTransformer(shift=1).transform(pt)
-                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                                print(f'Primes {indices_apart} apart (start_value={start_value}, add={add_option}, shift={shift_value}):')
-                                ResearchUtils.print_section_data(section, pt)
-                                screen.press_enter()
+                            pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart, shift=shift_value)
 
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
-    def use_cuneiform_keystream(word_threshold=4, ioc_threshold=1.8):
+    def use_cuneiform_keystream():
         """
             Uses the Cuneiform stream as a keystream in either base 59 or base 60.
         """
@@ -729,8 +680,8 @@ class Attempts(object):
                 # Build the keystream (both ordered and reversed) 
                 digits = ''.join(digit_ordering)
                 order_marker = '<'.join([ chunk[0] for chunk in digit_ordering ])
-                cuneiform = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM_STREAM ]
-                keystreams = [ cuneiform, cuneiform[::-1] ]
+                cuneiform_stream = [ digits.index(i[0]) * base + digits.index(i[1]) for i in CUNEIFORM_STREAM ]
+                keystreams = [ cuneiform_stream, cuneiform_stream[::-1] ]
 
                 # Try both normal and reversed keystreams
                 for keystream in keystreams:
@@ -744,10 +695,7 @@ class Attempts(object):
                             # Try decryption
                             pt = ProcessedText(section=section)
                             KeystreamTransformer(add=add_option, keystream=iter(keystream)).transform(pt)
-                            if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                                print(f'Base{base} Cuneiform keystream (order={order_marker}, add={add_option}):')
-                                ResearchUtils.print_section_data(section, pt)
-                                screen.press_enter()
+                            pt.check_measurements(base=base, order=order_marker, add=add_option)
 
     @staticmethod
     def outguess_dictionary_attack(text_len_threthold=50):
@@ -812,8 +760,10 @@ class Attempts(object):
                         screen.print_yellow(f'Key: {key_str}')
                         print(contents)
 
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.8)) 
     @staticmethod
-    def fibonacci_sequence_keystream_bruteforce(word_threshold=4, ioc_threshold=1.8, consider_interrupters=False):
+    def fibonacci_sequence_keystream_bruteforce(consider_interrupters=False):
         """
             Performs a keystream manipulation on runes based on Fibonacci sequence starting at every two numbers between 0 and 28.
         """
@@ -842,9 +792,7 @@ class Attempts(object):
 
                                 # Apply keystream
                                 FibonacciKeystreamTransformer(add=add_option, start_a=start_a, start_b=start_b, interrupt_indices=interrupt_indices).transform(pt)
-                                if pt.get_first_non_wordlist_word_index(wordlist) >= word_threshold or pt.get_rune_ioc() >= ioc_threshold:
-                                    print(f'FibonacciKeystream (start_a={start_a}, start_b={start_b}, add={add}):') 
-                                    ResearchUtils.print_section_data(section, pt)
+                                pt.check_measurements(start_a=start_a, start_b=start_b, add=add_option)
 
                         # Update progress bar
                         pbar.update(1)
@@ -877,6 +825,8 @@ def main():
             screen.press_enter()
 
         except KeyboardInterrupt:
+            screen.print_red('\n\nSTOPPED BY USER\n')
+            screen.press_enter()
             continue
 
 if __name__ == '__main__':

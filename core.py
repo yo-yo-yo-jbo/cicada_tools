@@ -1,3 +1,4 @@
+import inspect
 import string
 
 class RuneUtils(object):
@@ -166,6 +167,9 @@ class ProcessedText(object):
 
         # Currently not marked as unsolved
         self._is_unsolved = False
+
+        # Cache for measurements
+        self._measurements = None
 
     def revert(self):
         """
@@ -340,4 +344,26 @@ class ProcessedText(object):
 
         return self.__class__._get_ioc(self.to_latin(), string.ascii_uppercase)
 
+    def check_measurements(self, **kwds):
+        """
+            Checks measurements.
+        """
+
+        # We could not import measurements before due to circular dependency
+        import measurements
+
+        # Get measurements unless previously acquired
+        if self._measurements is None:
+
+            # Inspect frames up
+            self._measurements = []
+            curr_frame = inspect.currentframe()
+            while curr_frame is not None:
+                self._measurements += measurements.get_measurements_for_function(curr_frame.f_code.co_name)
+                curr_frame = curr_frame.f_back
+
+        # Run all measurements and stop at first success
+        for measurement in self._measurements:
+            if measurement.measure(self, **kwds):
+                return
 
