@@ -146,7 +146,7 @@ class AllWordsMeasurement(MeasurementBase):
         """
 
         # Indicates success or failure which will be matched against the "threshold" of zero
-        if processed_text.get_first_non_wordlist_word_index(self._wordlist) > len(processed_text.get_rune_words()):
+        if processed_text.get_first_non_wordlist_word_index(self._wordlist) >= len(processed_text.get_rune_words()):
             return 1
         else:
             return -1

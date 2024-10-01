@@ -96,8 +96,9 @@ class Attempts(object):
             screen.print_solved_text(f'[{word_index} / {len(words)}]: {len(word)}\t\t{word}\t\t{RuneUtils.runes_to_latin(word)}')
             screen.press_enter()
 
+    @measurement(AllWordsMeasurement())
     @staticmethod
-    def sentence_cribbing(skip_limit=3301, start_val_limit=3301, consider_interrupters=False):
+    def sentence_cribbing(skip_limit=31, start_val_limit=3301, consider_interrupters=False):
         """
             Attempts cribbing the first sentence automatically, assuming a prime-related ascending key.
             Assumes interrupters might occur. Also attempts to use emirps (Decimal-reversal of primes).
@@ -106,11 +107,29 @@ class Attempts(object):
         # Get words
         wordlist = ResearchUtils.get_rune_wordlist(True)
 
+        # Work on unsolved sections
+        unsolved_sections = ResearchUtils.get_unsolved_sections()
+        max_runes = max([ ProcessedText(section=section).get_num_of_runes() for section in unsolved_sections ])
+
+        # Build a primes cache
+        with tqdm(desc='Building primes cache') as pbar:
+            max_prime = MathUtils.find_next_prime(start_val_limit)
+            primes = [ 2 ]
+            while max_prime not in primes:
+                primes.append(MathUtils.find_next_prime(primes[-1]))
+                pbar.update(1)
+            for i in range((skip_limit + 1) * max_runes):
+                primes.append(MathUtils.find_next_prime(primes[-1]))
+                pbar.update(1)
+
         # Either reverse or not
         for rev_option in (False, True):
 
             # Iterate all unsolved sections
-            for section in ResearchUtils.get_unsolved_sections():
+            for section in unsolved_sections:
+
+                # Get the section number of runes
+                section_runes_len = ProcessedText(section=section).get_num_of_runes()
 
                 # Optionally reverse
                 text = section.get_all_text()
@@ -124,63 +143,44 @@ class Attempts(object):
                     continue
 
                 # Iterate all potential prime keys
-                for skip in tqdm(range(1, skip_limit), desc=f'Section {section.name} (rev={rev_option}'):
-                    for start_val in range(start_val_limit):
+                for skip in tqdm(range(1, skip_limit), desc=f'Section "{section.name}" (rev={rev_option})'):
+                    for start_index in range(0, len(primes) - skip*section_runes_len):
                        
                         # Take interrupters into account
                         gen = ResearchUtils.iterate_potential_interrupter_indices(header_pt) if consider_interrupters else [[]]
                         for interrupt_indices in gen:
 
                             # Build primes key
-                            key = []
-                            curr = start_val
-                            while len(key) < header_pt.get_num_of_runes():
-                                key.append(curr)
-                                curr = MathUtils.find_next_prime(curr)
+                            key = [ primes[i] for i in range(start_index, start_index + skip * section_runes_len, skip) ]
 
                             # Check for primes
-                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
-                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
-                            pt_header_words = processed_text.get_rune_words()
-                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
-                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
-                                print(f'Primes key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
-
+                            pt = ProcessedText(rune_text=' '.join(header_words), section=section)
+                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(pt)
+                            pt.check_measurements(key=key, mode='Primes', skip=skip, start=key[0])
+                            
                             # Check for abs(3301 - primes)
+                            pt.revert()
                             key_abs = [ abs(3301 - i) for i in key ]
-                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
-                            KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(processed_text)
-                            pt_header_words = processed_text.get_rune_words()
-                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
-                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
-                                print(f'Primes abs(3301-x) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
+                            KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(pt)
+                            pt.check_measurements(key=key, mode='Func15', skip=skip, start=key[0])
 
                             # Check Totient of primes
+                            pt.revert()
                             key = [ i - 1 for i in key ]
-                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
-                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
-                            pt_header_words = processed_text.get_rune_words()
-                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
-                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
-                                print(f'Totient primes key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
+                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(pt)
+                            pt.check_measurements(key=key, mode='Totient', skip=skip, start=key[0])
 
                             # Check for abs(3301 - tot(primes))
+                            pt.revert()
                             key_abs = [ abs(3301 - i) for i in key ]
-                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
-                            KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(processed_text)
-                            pt_header_words = processed_text.get_rune_words()
-                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
-                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
-                                print(f'Totient primes abs(3301-x) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
+                            KeystreamTransformer(keystream=iter(key_abs), interrupt_indices=interrupt_indices).transform(pt)
+                            pt.check_measurements(key=key, mode='Func15-Totient', skip=skip, start=key[0])
 
                             # Build mirpe key
+                            pt.revert()
                             key = [ int(str(i + 1)[::-1]) for i in key ]
-                            processed_text = ProcessedText(rune_text=' '.join(header_words), section=section)
-                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(processed_text)
-                            pt_header_words = processed_text.get_rune_words()
-                            if len([ word for word in pt_header_words if word in wordlist ]) == len(pt_header_words):
-                                plaintext_latin = RuneUtils.runes_to_latin(' '.join(pt_header_words))
-                                print(f'Emirps (Decimal-reverse primes) key: {key} with skip {skip} and start value of {start_val} yields {plaintext_latin} (interrupt_indices={interrupt_indices})')
+                            KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(pt)
+                            pt.check_measurements(key=key, mode='Emirps', skip=skip, start=key[0])
 
     @measurement(PrefixWordsMeasurement(threshold=6))
     @measurement(IocMeasurement(threshold=1.8))
