@@ -811,6 +811,55 @@ class AutokeyGpTransformer(TransformerBase):
         # Set the result
         processed_text.set_runes(result)
 
+def AlbertiTransformer(TransformerBase):
+    """
+        Runs an Alberti cipher.
+    """
+
+    def __init__(self, period, periodic_increment=1, initial_shift=0, interrupt_indices=set()):
+        """
+            Creates an instance.
+        """
+
+        # Validations
+        assert periodic_increment > 0, Exception('Periodic increment must be a positive integer')
+        assert periodic_increment < RuneUtils.size(), Exception('Periodic increment too big')
+
+        # Save members
+        self._mobile_disk = list(range(RuneUtils.size()))
+        self._interrupt_indices = interrupt_indices
+        self._period = period
+        self._periodic_increment = periodic_increment
+
+        # Use the initial shift
+        self._mobile_disk = self.mobile_disk[initial_shift:] + self.mobile_disk[:initial_shift]
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Save the mobile disk
+        mobile_disk = self._mobile_disk[:]
+        mobile_counter = 0
+
+        # Iterate runes
+        result = []
+        rune_index = -1
+        for rune in processed_text.get_runes():
+            rune_index += 1
+            if rune_index in self._interrupt_indices:
+                result.append(rune)
+                continue
+            result.append(RuneUtils.rune_at(mobile_disk.index(RuneUtils.get_rune_index(rune))))
+            mobile_counter += 1
+            if mobile_counter == self._period:
+                mobile_counter = 0
+                mobile_disk = mobile_disk[self._periodic_increment:] + mobile_disk[:self._periodic_increment]
+
+        # Yield results
+        processed_text.set_runes(result)
+
 class UnsolvedTransformer(TransformerBase):
     """
         Marks the processed text as unsolved.
