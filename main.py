@@ -760,6 +760,43 @@ class Attempts(object):
                         key_str = '<NO KEY>' if key is None else key
                         screen.print_yellow(f'Key: {key_str}')
                         print(contents)
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.8)) 
+    @staticmethod
+    def primes_indexed_by_totient_keystream(consider_interrupters=False):
+        """
+            Performs a keystream manipulation on runes based on the primes that are indexed by the Totient of the natural numbers.
+        """
+
+        # Saves the keystream
+        keystream = [ 2 ]
+        primes = [ 2 ]
+
+        # Iterate all sections
+        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+
+            # Extend the keystream as required
+            pt = ProcessedText(section=section)
+            while len(keystream) < pt.get_num_of_runes():
+                next_tot = MathUtils.totient(len(keystream) + 1)
+                while len(primes) <= next_tot:
+                    primes.append(MathUtils.find_next_prime(primes[-1]))
+                keystream.append(primes[next_tot - 1])
+
+            # Either add or substruct
+            for add_option in (False, True):
+
+                # Consider interrupters
+                pt = ProcessedText(section=section)
+                gen = ResearchUtils.iterate_potential_interrupter_indices(pt) if consider_interrupters else [[]]
+                for interrupt_indices in gen:
+
+                    # Revert processed text
+                    pt.revert()
+
+                    # Apply keystream
+                    KeystreamTransformer(add=add_option, keystream=iter(keystream), interrupt_indices=interrupt_indices).transform(pt)
+                    pt.check_measurements(add=add_option)
 
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.8)) 
@@ -768,9 +805,6 @@ class Attempts(object):
         """
             Performs a keystream manipulation on runes based on Fibonacci sequence starting at every two numbers between 0 and 28.
         """
-
-        # Get an extended wordlist for a measurement
-        wordlist = ResearchUtils.get_rune_wordlist(True)
 
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
