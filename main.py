@@ -656,7 +656,7 @@ class Attempts(object):
                             pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart, shift=shift_value)
 
     @measurement(PrefixWordsMeasurement(threshold=4))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
     def use_cuneiform_keystream():
         """
@@ -871,16 +871,17 @@ class Attempts(object):
 
         # Define constants
         consts = {
-            'Pi'    : str(sympy.N(sympy.pi, max_runes + 1)),
-            'TwoPi' : str(sympy.N(2 * sympy.pi, max_runes + 1)),
-            'e'     : str(sympy.N(sympy.exp(1), max_runes + 1)),
-            'Phi'   : str(sympy.N(sympy.S.GoldenRatio, max_runes + 1))
+            'Pi'    : sympy.pi,
+            'TwoPi' : 2 * sympy.pi,
+            'e'     : sympy.exp(1),
+            'Phi'   : sympy.S.GoldenRatio,
+            'Sqrt2' : sympy.sqrt(2)
         }
 
         # Add the constants as keystreams
         keystreams = {}
         for k, v in consts.items():
-            digits = [ int(d) for d in v.replace('.', '') ]
+            digits = [ int(d) for d in str(sympy.N(v, max_runes + 1)).replace('.', '') ]
             keystreams[k] = [ digits, digits[1:] ]
 
         # Iterate all sections
