@@ -900,6 +900,44 @@ class Attempts(object):
                         KeystreamTransformer(keystream=iter(keystream), add=add_option).transform(pt)
                         pt.check_measurements(const=const_name, add=add_option)
 
+    @measurement(AllWordsMeasurement())
+    @staticmethod
+    def ascii_values_keystream_cribbing_bruteforce(header_threshold=7):
+        """
+            Attempts to crib section words by ASCII values of dictionary words.
+        """
+
+        # Get English words (uppercase)
+        upper_english = [ word.upper() for word in ResearchUtils.get_english_dictionary_words(as_runes=False) ]
+
+        # Work on unsolved sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Get header words
+            header_pt = ProcessedText(rune_text=section.get_all_text().split('.')[0], section=section)
+            if header_pt.get_num_of_runes() < header_threshold:
+                continue
+            header_words = header_pt.get_rune_words()
+            
+            # Match all header words and include both uppercase and lowercase
+            pt_options = []
+            for header_word in header_words:
+                english_words = [ word for word in upper_english if len(word) == len(header_word) ]
+                english_words += [ word.lower() for word in english_words ]
+                pt_options.append(english_words)
+
+            # Iterate all options
+            all_options = list(itertools.product(*pt_options))
+            for option in tqdm(all_options, desc=f'Section "{section.name}"'):
+
+                # Either add or substruct
+                for add_option in (False, True):
+
+                    # Map option to a keystream based on ASCII
+                    header_pt.revert()
+                    KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(header_pt)
+                    header_pt.check_measurements(key=option, add=add_option)
+
 def main():
     """
         Main routine.
