@@ -833,7 +833,7 @@ class Attempts(object):
                         pbar.update(1)
 
     @measurement(PrefixWordsMeasurement(threshold=4))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
     def alberti_cipher_bruteforce(max_period=26):
         """
@@ -856,6 +856,48 @@ class Attempts(object):
 
                             # Update progress bar
                             pbar.update(1)
+
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.6)) 
+    @staticmethod
+    def mathematical_constants_digits_keystream(max_period=26):
+        """
+            Uses mathematical constants digits as keystreams.
+        """
+
+        # Work on unsolved sections
+        unsolved_sections = ResearchUtils.get_unsolved_sections()
+        max_runes = max([ ProcessedText(section=section).get_num_of_runes() for section in unsolved_sections ])
+
+        # Define constants
+        consts = {
+            'Pi'    : str(sympy.N(sympy.pi, max_runes + 1)),
+            'TwoPi' : str(sympy.N(2 * sympy.pi, max_runes + 1)),
+            'e'     : str(sympy.N(sympy.exp(1), max_runes + 1)),
+            'Phi'   : str(sympy.N(sympy.S.GoldenRatio, max_runes + 1))
+        }
+
+        # Add the constants as keystreams
+        keystreams = {}
+        for k, v in consts.items():
+            digits = [ int(d) for d in v.replace('.', '') ]
+            keystreams[k] = [ digits, digits[1:] ]
+
+        # Iterate all sections
+        for section in unsolved_sections:
+
+            # Iterate all constants
+            pt = ProcessedText(section=section)
+            for const_name in tqdm(keystreams, desc=f'Section "{section.name}"'):
+                for keystream in keystreams[const_name]:
+
+                    # Either add or substruct
+                    for add_option in (False, True):
+
+                        # Run cipher
+                        pt.revert()
+                        KeystreamTransformer(keystream=iter(keystream), add=add_option).transform(pt)
+                        pt.check_measurements(const=const_name, add=add_option)
 
 def main():
     """
