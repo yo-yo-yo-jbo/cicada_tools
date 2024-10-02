@@ -901,7 +901,8 @@ class Attempts(object):
                         KeystreamTransformer(keystream=iter(keystream), add=add_option).transform(pt)
                         pt.check_measurements(const=const_name, add=add_option)
 
-    @measurement(AllWordsMeasurement())
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def ascii_values_keystream_cribbing_bruteforce(header_threshold=7):
         """
@@ -913,6 +914,9 @@ class Attempts(object):
 
         # Work on unsolved sections
         for section in ResearchUtils.get_unsolved_sections():
+
+            # Create processed text
+            pt = ProcessedText(section=section)
 
             # Get header words
             header_pt = ProcessedText(rune_text=section.get_all_text().split('.')[0], section=section)
@@ -935,9 +939,9 @@ class Attempts(object):
                 for add_option in (False, True):
 
                     # Map option to a keystream based on ASCII
-                    header_pt.revert()
-                    KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(header_pt)
-                    header_pt.check_measurements(key=option, add=add_option)
+                    pt.revert()
+                    KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(pt)
+                    pt.check_measurements(key=option, add=add_option)
 
 def main():
     """
