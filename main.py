@@ -17,6 +17,7 @@ import gzip
 import shutil
 import sympy
 import subprocess
+import logging
 
 class Attempts(object):
     """
@@ -943,6 +944,10 @@ def main():
         Main routine.
     """
 
+    # Logging capability
+    logging.basicConfig(filename='CicadaUtils.log', level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
     # List all static methods in Attempts
     attempts = [ (k, v) for (k, v) in Attempts.__dict__.items() if isinstance(v, staticmethod) ]
     menu_items = [ (k.replace('_', ' ').title(), v.__func__.__doc__.strip().split('\n')[0]) for (k, v) in attempts ]
@@ -959,13 +964,16 @@ def main():
                 return
 
             # Handle a valid choice
+            logger.info(f'Starting: {menu_items[choice][0]}')
             screen.clear()
             screen.print_yellow(f'== {menu_items[choice][0]} ==\n')
             attempts[choice][1].__func__()
+            logger.info(f'Finished: {menu_items[choice][0]}')
             screen.print_green('\n\nEXECUTION COMPLETE\n')
             screen.press_enter()
 
         except KeyboardInterrupt:
+            logger.info(f'Stopped: {menu_items[choice][0]}')
             screen.print_red('\n\nSTOPPED BY USER\n')
             screen.press_enter()
             continue

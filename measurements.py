@@ -3,6 +3,7 @@ import screen
 
 from abc import ABC
 from abc import abstractmethod
+import logging
 
 # Maps function names to measurements
 _MEASUREMENTS_CACHE = {}
@@ -68,9 +69,12 @@ class MeasurementBase(ABC):
         if not self._cond(measurement):
             return False
 
-        # Print data
+        # Print data and log it
+        logger = logging.getLogger(__name__)
+        logger.info(f'{self.__class__.__name__}: {measurement}\n')
         screen.print_yellow(f'{self.__class__.__name__}: {measurement}\n')
         for kwd in kwds:
+            logger.info(f'{kwd}: {kwds[kwd]}')
             screen.print_yellow(f'{kwd}:', end='')
             print(f' {kwds[kwd]}')
         if processed_text.section is None:

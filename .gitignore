@@ -9,3 +9,6 @@ __pycache__
 
 # Ignore OEIS
 oeis.txt
+
+# Ignore logging
+CicadaUtils.log
