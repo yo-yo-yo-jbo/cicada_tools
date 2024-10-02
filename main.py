@@ -904,44 +904,38 @@ class Attempts(object):
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
-    def ascii_values_keystream_cribbing_bruteforce(header_threshold=7):
+    def ascii_values_keystream_cribbing_bruteforce(prefix_words_threshold=2):
         """
             Attempts to crib section words by ASCII values of dictionary words.
         """
 
         # Get English words (uppercase)
-        upper_english = [ word.upper() for word in ResearchUtils.get_english_dictionary_words(as_runes=False) ]
+        english = [ word for word in ResearchUtils.get_english_dictionary_words(as_runes=False) ]
+ 
+        # Try lowercase or uppercase
+        for use_lower in (False, True):
 
-        # Work on unsolved sections
-        for section in ResearchUtils.get_unsolved_sections():
+            # Turn lower or uppercase
+            if use_lower:
+                english = [ w.lower() for w in english ]
+            else:
+                english = [ w.upper() for w in english ]
 
-            # Create processed text
-            pt = ProcessedText(section=section)
+            # Work on unsolved sections
+            for section in ResearchUtils.get_unsolved_sections():
 
-            # Get header words
-            header_pt = ProcessedText(rune_text=section.get_all_text().split('.')[0], section=section)
-            if header_pt.get_num_of_runes() < header_threshold:
-                continue
-            header_words = header_pt.get_rune_words()
-            
-            # Match all header words and include both uppercase and lowercase
-            pt_options = []
-            for header_word in header_words:
-                english_words = [ word for word in upper_english if len(word) == len(header_word) ]
-                english_words += [ word.lower() for word in english_words ]
-                pt_options.append(english_words)
+                # Get all combinations
+                pt = ProcessedText(section=section)
+                key_options = list(itertools.combinations(english, prefix_words_threshold))
+                for option in tqdm(key_options, desc=f'Section "{section.name}" (lowercase={use_lower})'):
 
-            # Iterate all options
-            all_options = list(itertools.product(*pt_options))
-            for option in tqdm(all_options, desc=f'Section "{section.name}"'):
+                    # Either add or substruct
+                    for add_option in (False, True):
 
-                # Either add or substruct
-                for add_option in (False, True):
-
-                    # Map option to a keystream based on ASCII
-                    pt.revert()
-                    KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(pt)
-                    pt.check_measurements(key=option, add=add_option)
+                        # Map option to a keystream based on ASCII
+                        pt.revert()
+                        KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(pt)
+                        pt.check_measurements(key=option, add=add_option, lower=use_lower)
 
 def main():
     """
