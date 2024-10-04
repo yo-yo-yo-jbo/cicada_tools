@@ -126,11 +126,21 @@ Notes:
 ### main.py
 Considered to be the "main" research-based module. Note its `Experiments` class which implements experiments, as discussed previously.
 
+### research_utils.py
+Contains research utilities such as getting unsolved sections or handling a dictionary.
+
 ### secrets.py
 Contains other secrets that are not squares, such as the [2013 missing primes](https://uncovering-cicada.fandom.com/wiki/What_Happened_Part_1_(2013)#THE_DIFFERENCE).
 
 ### screen.py
-Pretty-printing utilities. 
+Pretty-printing utilities (such as printing with colors).
+
+### show_solved.py
+Shows the solved sections only.
+
+### gen_fibo_primes.py
+Generates primes indexed by Fibonacci numbers, naively. Never stops until CTRL+C is hit.  
+This tool was used to generate the `fibo_primes.txt` file.
 
 ## Non-technical remarks about solved sections
 * `A WARNING`: Message from Cicada: "do not modify the book". This might be a hint that even spacing or graphics are meaningful. Also, an example of a simple linear modification of each rune by its value (`Atbash`).
