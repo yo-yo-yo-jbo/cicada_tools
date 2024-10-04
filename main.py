@@ -609,9 +609,25 @@ class Experiments(object):
                 # Use a keystream
                 stream_index += 1
                 for add_option in (False, True):
+
+                    # Use as-is
                     pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
                     pt.check_measurements(stream=stream_index, add=add_option)
+
+                    # Only take primes from the keystream
+                    primes_ks = [ val for val in stream if sympy.isprime(val) ]
+                    if len(primes_ks) == 0:
+                        continue
+                    pt.revert()
+                    KeystreamTransformer(keystream=iter(primes_ks), add=add_option).transform(pt)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='Primes')
+
+                    # Take the totients of the primes
+                    tot_primes_ks = [ MathUtils.totient(val) for val in primes_ks ]
+                    pt.revert()
+                    KeystreamTransformer(keystream=iter(tot_primes_ks), add=add_option).transform(pt)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimes')
 
     @measurement(PrefixWordsMeasurement(threshold=6))
     @measurement(IocMeasurement(threshold=1.8))
