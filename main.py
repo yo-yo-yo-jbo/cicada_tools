@@ -521,9 +521,10 @@ class Attempts(object):
         """
 
         # Build dictionary mapping solved sections to GP-sum based streams
-        lp1_keystream_words = []
-        lp1_keystream_sentences = []
-        had_unsolved = False
+        lp1_keystream_words_dec = []
+        lp1_keystream_sentences_dec = []
+        lp1_keystream_words_enc = []
+        lp1_keystream_sentences_enc = []
         streams = []
         result = set()
         for section in LiberPrimus.get_all_sections():
@@ -535,34 +536,47 @@ class Attempts(object):
             
             # Skip unsolved sections
             if processed_text.is_unsolved():
-                had_unsolved = True
                 continue
 
-            # Get the word stream
-            stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
-            if len(stream_words) > 0:
-                streams.append(stream_words)
+            # Work on both decrypted and encrypted cases
+            for use_encrypted in (False, True):
 
-            # Get the sentences stream
-            stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
-            if len(stream_sentences) > 0:
-                streams.append(stream_sentences)
+                # Revert if using encrypted
+                if use_encrypted:
+                    processed_text.revert()
 
-            # Append current section stream to the LP1 keystreams
-            if not had_unsolved:
-                lp1_keystream_words += stream_words
-                lp1_keystream_sentences += stream_sentences
+                # Get the word stream
+                stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
+                if len(stream_words) > 0:
+                    if (not use_encrypted) or len(section.transformers) > 0:
+                        streams.append(stream_words)
+
+                # Get the sentences stream
+                stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
+                if len(stream_sentences) > 0:
+                    if (not use_encrypted) or len(section.transformers) > 0:
+                        streams.append(stream_sentences)
+
+                # Append current section stream to the LP1 keystreams
+                if use_encrypted:
+                    lp1_keystream_words_enc += stream_words
+                    lp1_keystream_sentences_enc += stream_sentences
+                else:
+                    lp1_keystream_words_dec += stream_words
+                    lp1_keystream_sentences_dec += stream_sentences
 
         # Add LP1 keystreams to the front of the streams
-        streams.insert(0, lp1_keystream_words)
-        streams.insert(0, lp1_keystream_sentences)
+        streams.insert(0, lp1_keystream_words_dec)
+        streams.insert(0, lp1_keystream_words_enc)
+        streams.insert(0, lp1_keystream_sentences_dec)
+        streams.insert(0, lp1_keystream_sentences_enc)
 
         # Iterate all unsolved sections and attempt to use each stream on each section
-        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all streams 
             stream_index = -1
-            for stream in streams:
+            for stream in tqdm(streams, desc=f'Section "{section.name}"'):
                 
                 # Use a keystream
                 stream_index += 1
