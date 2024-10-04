@@ -49,13 +49,10 @@ class Experiments(object):
 
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
-                gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
-                screen.print_yellow('GP-sums of runes:', end='')
-                print(f'  {gp_sum_string}')
-                gp_sums = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
-                gp_sum_string = ', '.join([ str(s) for s in gp_sums if s > 0 ])
+                screen.print_yellow('GP-sums of words:', end='')
+                print(f'  {processed_text.get_gp_sum_of_words()}')
                 screen.print_yellow('GP-sums of sentences:', end='')
-                print(f' {gp_sum_string}\n')
+                print(f' {processed_text.get_gp_sum_of_sentences()}\n')
             
             # Wait for further input if filename is available
             image_paths = [ page.filepath for page in section.pages if page.filepath is not None ]

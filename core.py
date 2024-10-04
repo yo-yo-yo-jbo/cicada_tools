@@ -268,6 +268,24 @@ class ProcessedText(object):
             lines = [ line for line in lines if len(line.strip()) > 0 ]
         return lines
 
+    def get_gp_sum_of_words(self):
+        """
+            Get the GP sums of words.
+        """
+
+        # Return the GP sums of words
+        result = [ RuneUtils.runes_to_gp_sum(word) for word in self.get_rune_words() ]
+        return [ val for val in result if val > 0 ]
+
+    def get_gp_sum_of_sentences(self):
+        """
+            Get the GP sums of sentences.
+        """
+
+        # Return the GP sums of sentences
+        result = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in self.split_sentences() ]
+        return [ val for val in result if val > 0 ]
+
     def get_first_non_wordlist_word_index(self, wordlist):
         """
             Finds the first Runic word that is not in the given wordlist.
