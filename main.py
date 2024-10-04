@@ -513,7 +513,7 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
-    def gp_sum_keystream():
+    def gp_sum_keystream(max_prime_index=10000):
         """
             Attempts to use the GP-sum of each solved section words as a keystream.
             Also attempts to use the GP-sums of entire solved LP1 as a keystream.
@@ -551,13 +551,13 @@ class Experiments(object):
                     processed_text.revert()
 
                 # Get the word stream
-                stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() ]
+                stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() if RuneUtils.runes_to_gp_sum(word) > 0 ]
                 if len(stream_words) > 0:
                     if (not use_encrypted) or len(section.transformers) > 0:
                         streams.append(stream_words)
 
                 # Get the sentences stream
-                stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
+                stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) if RuneUtils.runes_to_gp_sum(sentence) > 0 ]
                 if len(stream_sentences) > 0:
                     if (not use_encrypted) or len(section.transformers) > 0:
                         streams.append(stream_sentences)
@@ -572,7 +572,7 @@ class Experiments(object):
 
                 # Add GP sums without titles for runes, words and sentences
                 pt_no_title = ProcessedText(section.get_all_text(exclude_titles=True))
-                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_runes() ])
+                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_runes() if RuneUtils.runes_to_gp_sum(item) > 0 ])
                 streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_rune_words() if RuneUtils.runes_to_gp_sum(item) > 0 ])
                 sentence_sums = [ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.split_sentences(include_empty=False) if RuneUtils.runes_to_gp_sum(item) > 0 ]
                 streams.append(sentence_sums)
@@ -599,6 +599,14 @@ class Experiments(object):
         streams.insert(0, lp1_keystream_product_dec)
         streams.insert(0, lp1_keystream_product_enc)
 
+        # Build primes
+        max_val = max([ max([ val for val in stream if val < max_prime_index + 1 ], default=0) for stream in streams ])
+        primes = [ 2 ]
+        with tqdm(desc=f'Building {max_val} primes') as pbar:
+            while len(primes) <= max_val:
+                primes.append(MathUtils.find_next_prime(primes[-1]))
+                pbar.update()
+
         # Iterate all unsolved sections and attempt to use each stream on each section
         for section in ResearchUtils.get_unsolved_sections():
 
@@ -615,6 +623,24 @@ class Experiments(object):
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
                     pt.check_measurements(stream=stream_index, add=add_option)
 
+                    # Take the totients of the keystream
+                    pt.revert()
+                    totients = [ MathUtils.totient(val) for val in stream ]
+                    KeystreamTransformer(keystream=iter(totients), add=add_option).transform(pt)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='Totients')
+
+                    # Use values as prime indices
+                    pt.revert()
+                    prime_indices = [ primes[val - 1] for val in stream if val < max_prime_index + 1 ]
+                    KeystreamTransformer(keystream=iter(prime_indices), add=add_option).transform(pt)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='PrimeIndices')
+
+                    # Use Totient value of the prime indices
+                    pt.revert()
+                    totient_prime_indices = [ MathUtils.totient(val) for val in stream ]
+                    KeystreamTransformer(keystream=iter(totient_prime_indices), add=add_option).transform(pt)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimeIndices')
+
                     # Only take primes from the keystream
                     primes_ks = [ val for val in stream if sympy.isprime(val) ]
                     if len(primes_ks) == 0:
@@ -623,7 +649,7 @@ class Experiments(object):
                     KeystreamTransformer(keystream=iter(primes_ks), add=add_option).transform(pt)
                     pt.check_measurements(stream=stream_index, add=add_option, mode='Primes')
 
-                    # Take the totients of the primes
+                    # Take the Totient value of the primes
                     tot_primes_ks = [ MathUtils.totient(val) for val in primes_ks ]
                     pt.revert()
                     KeystreamTransformer(keystream=iter(tot_primes_ks), add=add_option).transform(pt)
