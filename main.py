@@ -510,100 +510,85 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
-    def gp_sum_keystream(max_prime_index=10000):
+    def gp_sum_keystream():
         """
-            Attempts to use the GP-sum of each solved section words as a keystream.
-            Also attempts to use the GP-sums of entire solved LP1 as a keystream.
-            Also attempts to use sentence GP-sums of solved sections from LP1.
+            Attempts to use the GP-sum of each solved section words as a keystream, in various forms (as-is, as indices to primes and so on).
         """
 
-        # Build dictionary mapping solved sections to GP-sum based streams
-        lp1_keystream_words_dec = []
-        lp1_keystream_sentences_dec = []
-        lp1_keystream_no_title_sentences_dec = []
-        lp1_keystream_product_dec = []
-        lp1_keystream_words_enc = []
-        lp1_keystream_sentences_enc = []
-        lp1_keystream_no_title_sentences_enc = []
-        lp1_keystream_product_enc = []
-
+        # Container for streams
         streams = []
-        result = set()
+        total_enc_stream_words = []
+        total_dec_stream_words = []
+        total_enc_stream_sentences = []
+        total_dec_stream_sentences = []
+        total_enc_stream_words_no_titles = []
+        total_dec_stream_words_no_titles = []
+        total_enc_stream_sentences_no_titles = []
+        total_dec_stream_sentences_no_titles = []
+
+        # Iterate all solved sections
         for section in tqdm(LiberPrimus.get_all_sections(), desc='Building streams from sections'):
 
-            # Process all text
-            processed_text = ProcessedText(section=section)
+            # Process text and skip unsolved sections
+            pt = ProcessedText(section=section)
             for transformer in section.transformers:
-                transformer.transform(processed_text)
-            
-            # Skip unsolved sections
-            if processed_text.is_unsolved():
+                transformer.transform(pt)
+            if pt.is_unsolved():
                 continue
 
-            # Work on both decrypted and encrypted cases
-            for use_encrypted in (False, True):
+            # Work on either encrypted or decrypted section
+            for use_enc in (False, True):
 
-                # Revert if using encrypted
-                if use_encrypted:
-                    processed_text.revert()
+                # Handle encrypted by reverting (processed text was transformed by the section's transformers previously)
+                if use_enc:
 
-                # Get the word stream
-                stream_words = [ RuneUtils.runes_to_gp_sum(word) for word in processed_text.get_rune_words() if RuneUtils.runes_to_gp_sum(word) > 0 ]
-                if len(stream_words) > 0:
-                    if (not use_encrypted) or len(section.transformers) > 0:
-                        streams.append(stream_words)
+                    # Skip direct translations as decrypted and encrypted runes are equal
+                    if len(section.transformers) == 0:
+                        continue
+                    pt.revert()
 
-                # Get the sentences stream
-                stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) if RuneUtils.runes_to_gp_sum(sentence) > 0 ]
-                if len(stream_sentences) > 0:
-                    if (not use_encrypted) or len(section.transformers) > 0:
-                        streams.append(stream_sentences)
-
-                # Append current section stream to the LP1 keystreams
-                if use_encrypted:
-                    lp1_keystream_words_enc += stream_words
-                    lp1_keystream_sentences_enc += stream_sentences
+                # Add a stream for the processed text words and sentences
+                streams.append(pt.get_gp_sum_of_words())
+                streams.append(pt.get_gp_sum_of_sentences())
+                if use_enc:
+                    total_enc_stream_words += pt.get_gp_sum_of_words()
+                    total_enc_stream_sentences += pt.get_gp_sum_of_sentences()
                 else:
-                    lp1_keystream_words_dec += stream_words
-                    lp1_keystream_sentences_dec += stream_sentences
+                    total_dec_stream_words += pt.get_gp_sum_of_words()
+                    total_dec_stream_sentences += pt.get_gp_sum_of_sentences()
 
-                # Add GP sums without titles for runes, words and sentences
-                pt_no_title = ProcessedText(section.get_all_text(exclude_titles=True))
-                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_runes() if RuneUtils.runes_to_gp_sum(item) > 0 ])
-                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_rune_words() if RuneUtils.runes_to_gp_sum(item) > 0 ])
-                sentence_sums = [ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.split_sentences(include_empty=False) if RuneUtils.runes_to_gp_sum(item) > 0 ]
-                streams.append(sentence_sums)
-                if use_encrypted:
-                    lp1_keystream_no_title_sentences_enc += sentence_sums
+                # Handle the section without titles
+                pt_no_titles = ProcessedText(rune_text=section.get_all_text(exclude_titles=True), section=section)
+                if pt_no_titles.get_runes() == pt.get_runes():
+                    continue
+                streams.append(pt_no_titles.get_gp_sum_of_words())
+                streams.append(pt_no_titles.get_gp_sum_of_sentences())
+                if use_enc:
+                    total_enc_stream_words_no_titles += pt_no_titles.get_gp_sum_of_words()
+                    total_enc_stream_sentences_no_titles += pt_no_titles.get_gp_sum_of_sentences()
                 else:
-                    lp1_keystream_no_title_sentences_dec += sentence_sums
-                
-                # Add product of sentence GP sums (as seen in Parable message from 2013)
-                product = sympy.prod(sentence_sums)
-                if product > 1:
-                    if use_encrypted:
-                        lp1_keystream_product_enc.append(product)
-                    else:
-                        lp1_keystream_product_dec.append(product)
+                    total_dec_stream_words_no_titles += pt_no_titles.get_gp_sum_of_words()
+                    total_dec_stream_sentences_no_titles += pt_no_titles.get_gp_sum_of_sentences()
 
-        # Add LP1 keystreams to the front of the streams
-        streams.insert(0, lp1_keystream_words_dec)
-        streams.insert(0, lp1_keystream_words_enc)
-        streams.insert(0, lp1_keystream_sentences_dec)
-        streams.insert(0, lp1_keystream_sentences_enc)
-        streams.insert(0, lp1_keystream_no_title_sentences_dec)
-        streams.insert(0, lp1_keystream_no_title_sentences_enc)
-        streams.insert(0, lp1_keystream_product_dec)
-        streams.insert(0, lp1_keystream_product_enc)
+        # Adjust streams
+        streams.append(total_enc_stream_words)
+        streams.append(total_dec_stream_words)
+        streams.append(total_enc_stream_sentences)
+        streams.append(total_dec_stream_sentences)
+        streams.append(total_enc_stream_words_no_titles)
+        streams.append(total_dec_stream_words_no_titles)
+        streams.append(total_enc_stream_sentences_no_titles)
+        streams.append(total_dec_stream_sentences_no_titles)
+        streams = [ stream for stream in streams if len(stream) > 0 ]
 
         # Build primes
-        max_val = max([ max([ val for val in stream if val < max_prime_index + 1 ], default=0) for stream in streams ])
+        max_value = max([ max(stream) for stream in streams ])
         primes = [ 2 ]
-        with tqdm(desc=f'Building {max_val} primes') as pbar:
-            while len(primes) <= max_val:
+        with tqdm(desc=f'Building {max_value} primes for stream values') as pbar:
+            while len(primes) < max_value:
                 primes.append(MathUtils.find_next_prime(primes[-1]))
-                pbar.update()
-
+                pbar.update(1)
+        
         # Iterate all unsolved sections and attempt to use each stream on each section
         for section in ResearchUtils.get_unsolved_sections():
 
@@ -618,7 +603,7 @@ class Experiments(object):
                     # Use as-is
                     pt = ProcessedText(section=section)
                     KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option)
+                    pt.check_measurements(stream=stream_index, add=add_option, mode='AsIs')
 
                     # Take the totients of the keystream
                     pt.revert()
@@ -628,7 +613,7 @@ class Experiments(object):
 
                     # Use values as prime indices
                     pt.revert()
-                    prime_indices = [ primes[val - 1] for val in stream if val < max_prime_index + 1 ]
+                    prime_indices = [ primes[val - 1] for val in stream ]
                     KeystreamTransformer(keystream=iter(prime_indices), add=add_option).transform(pt)
                     pt.check_measurements(stream=stream_index, add=add_option, mode='PrimeIndices')
 
