@@ -18,9 +18,9 @@ Based on the encrypted payload, I have a few assumptions:
 2. The cipher works on at least two letters at the same time (Digraphs) due to IoC tests.
 3. The cipher probably treats two consecutive letters differently (e.g. like `Playfair` cipher does). This is a conclusion from the low distribution of doublets in the entire `LP2`.
 
-## Attempts made
-All attempts are under the `Attempts` class, in `main.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
-That's a great programmatic way of documenting all attempts.
+## Experiments made
+All experiments are under the `Experiments` class, in `main.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
+That's a great programmatic way of documenting all experiments.
 
 ## Coding and classes
 The following section includes coding and useful classes:
@@ -36,9 +36,36 @@ Contains sections in Runes, parsed dynamically from the folder `liber_primus`. T
 ### core.py
 Contains utilities for translations, including the most important class, `ProcessedText`.  
 That class keeps a mutation of all runes while maintaining all punctuation and non-rune instances.
- 
+
 ### transformers.py
 Contains `Transformer` classes, which transform `ProcessedText` instances runes by calling `transform` on them.
+Creating a new transformer means inheriting from `TransformerBase`, which means you must implement a method called `transform` that transforms a processed text.  
+Normally you'd call `processed_text.get_runes()` to get the runes and do something to them, and then call `processed_text.set_runes()` to set them.  
+Here is an example of a Transformer that substructs the stream of natural numbers from runes:
+
+```python3
+class NaturalsKeystream(TransformerBase):
+    def __init__(self, start_val=1):
+        """
+            Creates an instance.
+        """
+
+        # Save members
+        self._start_val = start_val
+
+    def transform(self, processed_text):
+        """
+            Transforms runes.
+        """
+
+        # Transforms runes
+        runes = processed_text.get_runes()
+        result = [ RuneUtils.rune_at((RuneUtils.get_rune_index(runes[i]) - (self._start_val + i)) % RuneUtils.size()) for i in range(len(runes)) ]
+        processed_text.set_runes(result)
+```
+
+Note there is also a `KeystreamTransformer` base class which is useful for keystream-like transformers.
+
 
 ### main.py
 Considered to be the "main" research-based module. Just run it.
