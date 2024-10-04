@@ -66,9 +66,65 @@ class NaturalsKeystream(TransformerBase):
 
 Note there is also a `KeystreamTransformer` base class which is useful for keystream-like transformers.
 
+### measurements.py
+Includes measurement utilities. For each experiment we want to measure the processed text.  
+You can add new measurements by inheriting from `MeasurementBase`, which means you must implement the `run_measurement` method which commonly compares some processed text measurement to a builtin threshold. You are expected to return a numeric value from this method.  
+Here is an example of a measurement that counts the number of "F" rune instances:
+
+```python3
+class FirstRuneMeasurement(MeasurementBase):
+    """
+        Measures the number of "F" rune instances.
+    """
+
+    def __init__(self, threshold):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(threshold=threshold)
+
+        # Save members
+        self._rune = RuneUtils.rune_at(0)
+
+    def run_measurement(self, processed_text):
+        """
+            Runs a mesaurement on a processed text and returns a result.
+        """
+
+        # Return the number of instances
+        return processed_text.get_runes().count(self._rune)
+```
+
+Now one could use your measurement as a decorator in an experiment. For instance, a success of a processed text in this experiment means we have at least 3 "F" runes, which will be implemented in `main.py` under the `Experiments` class:
+
+```python3
+@measurement(FirstRuneMeasurement(3))
+@staticmethod
+def try_something(max_start_value=42):
+    """
+        Tries something.
+    """
+
+    # Iterate all unsolved sections
+    for section in ResearchUtils.get_unsolved_sections():
+
+        # Run the Natural numbers keystream and measure
+        pt = ProcessedText(section=section)
+        for start_value in range(1, max_start_value + 1):
+            NaturalsKeystream(start_val=start_value).transform(pt)
+            pt.check_measurement(start_value=start_value)
+            pt.revert()
+```
+
+Notes:
+1. The call to `check_measurement` measures the processed text and impacted by the measurements declared for the method (`FirstRuneMeasurement(3)` in our case).
+2. The call to `revert` since the processed text it not reverted to its original runes after measurement - otherwise the transformers would continue working on the already-processed runes.
+3. The call to `check_measurement` can get arbitrary printable key-values (in our case, `start_value`) that will be visible in a log (and on-screen) if the measurement passes.
 
 ### main.py
-Considered to be the "main" research-based module. Just run it.
+Considered to be the "main" research-based module. Note its `Experiments` class which implements experiments, as discussed previously.
 
 ### secrets.py
 Contains other secrets that are not squares, such as the [2013 missing primes](https://uncovering-cicada.fandom.com/wiki/What_Happened_Part_1_(2013)#THE_DIFFERENCE).
