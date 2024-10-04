@@ -622,42 +622,48 @@ class Experiments(object):
                 stream_index += 1
                 for add_option in (False, True):
 
-                    # Use as-is
-                    pt = ProcessedText(section=section)
-                    KeystreamTransformer(keystream=iter(stream), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='AsIs')
+                    # Either reverse or not
+                    for rev_option in (False, True):
 
-                    # Take the totients of the keystream
-                    pt.revert()
-                    totients = [ MathUtils.totient(val) for val in stream ]
-                    KeystreamTransformer(keystream=iter(totients), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='Totients')
+                        # Build base stream
+                        base_stream = stream[::-1] if rev_option else stream
 
-                    # Use values as prime indices
-                    pt.revert()
-                    prime_indices = [ primes[val - 1] for val in stream ]
-                    KeystreamTransformer(keystream=iter(prime_indices), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='PrimeIndices')
+                        # Use as-is
+                        pt = ProcessedText(section=section)
+                        KeystreamTransformer(keystream=iter(base_stream), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='AsIs', reverse=rev_option)
 
-                    # Use Totient value of the prime indices
-                    pt.revert()
-                    totient_prime_indices = [ MathUtils.totient(val) for val in stream ]
-                    KeystreamTransformer(keystream=iter(totient_prime_indices), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimeIndices')
+                        # Take the totients of the keystream
+                        pt.revert()
+                        totients = [ MathUtils.totient(val) for val in base_stream ]
+                        KeystreamTransformer(keystream=iter(totients), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='Totients', reverse=rev_option)
 
-                    # Only take primes from the keystream
-                    primes_ks = [ val for val in stream if sympy.isprime(val) ]
-                    if len(primes_ks) == 0:
-                        continue
-                    pt.revert()
-                    KeystreamTransformer(keystream=iter(primes_ks), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='Primes')
+                        # Use values as prime indices
+                        pt.revert()
+                        prime_indices = [ primes[val - 1] for val in base_stream ]
+                        KeystreamTransformer(keystream=iter(prime_indices), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='PrimeIndices', reverse=rev_option)
 
-                    # Take the Totient value of the primes
-                    tot_primes_ks = [ MathUtils.totient(val) for val in primes_ks ]
-                    pt.revert()
-                    KeystreamTransformer(keystream=iter(tot_primes_ks), add=add_option).transform(pt)
-                    pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimes')
+                        # Use Totient value of the prime indices
+                        pt.revert()
+                        totient_prime_indices = [ MathUtils.totient(val) for val in prime_indices ]
+                        KeystreamTransformer(keystream=iter(totient_prime_indices), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimeIndices', rev=rev_option)
+
+                        # Only take primes from the keystream
+                        primes_ks = [ val for val in base_stream if sympy.isprime(val) ]
+                        if len(primes_ks) == 0:
+                            continue
+                        pt.revert()
+                        KeystreamTransformer(keystream=iter(primes_ks), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='Primes', rev=rev_option)
+
+                        # Take the Totient value of the primes
+                        tot_primes_ks = [ MathUtils.totient(val) for val in primes_ks ]
+                        pt.revert()
+                        KeystreamTransformer(keystream=iter(tot_primes_ks), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimes', rev=rev_option)
 
     @measurement(PrefixWordsMeasurement(threshold=6))
     @measurement(IocMeasurement(threshold=1.8))
