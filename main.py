@@ -645,11 +645,23 @@ class Experiments(object):
                         KeystreamTransformer(keystream=iter(prime_indices), add=add_option).transform(pt)
                         pt.check_measurements(stream=stream_index, add=add_option, mode='PrimeIndices', reverse=rev_option)
 
+                        # Use Emirp indices
+                        pt.revert()
+                        emirp_indices = [ int(str(val)[::-1]) for val in prime_indices ]
+                        KeystreamTransformer(keystream=iter(emirp_indices), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='EmirpIndices', reverse=rev_option)
+
                         # Use Totient value of the prime indices
                         pt.revert()
                         totient_prime_indices = [ MathUtils.totient(val) for val in prime_indices ]
                         KeystreamTransformer(keystream=iter(totient_prime_indices), add=add_option).transform(pt)
                         pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfPrimeIndices', rev=rev_option)
+
+                        # Use Totient value of the Emirp indices
+                        pt.revert()
+                        totient_emirp_indices = [ MathUtils.totient(val) for val in emirp_indices ]
+                        KeystreamTransformer(keystream=iter(totient_emirp_indices), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfEmirpIndices', rev=rev_option)
 
                         # Only take primes from the keystream
                         primes_ks = [ val for val in base_stream if sympy.isprime(val) ]
