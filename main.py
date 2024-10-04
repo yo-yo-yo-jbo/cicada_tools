@@ -552,6 +552,7 @@ class Experiments(object):
                     pt.revert()
 
                 # Add a stream for the processed text words and sentences
+                streams.append(pt.get_gp_sum_of_runes())
                 streams.append(pt.get_gp_sum_of_words())
                 streams.append(pt.get_gp_sum_of_sentences())
                 if use_enc:
@@ -572,6 +573,7 @@ class Experiments(object):
                 pt_no_titles = ProcessedText(rune_text=section.get_all_text(exclude_titles=True), section=section)
                 if pt_no_titles.get_runes() == pt.get_runes():
                     continue
+                streams.append(pt_no_titles.get_gp_sum_of_runes())
                 streams.append(pt_no_titles.get_gp_sum_of_words())
                 streams.append(pt_no_titles.get_gp_sum_of_sentences())
                 if use_enc:

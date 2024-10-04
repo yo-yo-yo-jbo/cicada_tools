@@ -268,6 +268,15 @@ class ProcessedText(object):
             lines = [ line for line in lines if len(line.strip()) > 0 ]
         return lines
 
+    def get_gp_sum_of_runes(self):
+        """
+            Get the GP sums of runes.
+        """
+
+        # Return the GP sums of runes
+        result = [ RuneUtils.runes_to_gp_sum(rune) for rune in self.get_runes() ]
+        return [ val for val in result if val > 0 ]
+
     def get_gp_sum_of_words(self):
         """
             Get the GP sums of words.
