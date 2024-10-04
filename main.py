@@ -36,11 +36,6 @@ class Attempts(object):
             # Build the processed text
             processed_text = ProcessedText(section=section)
 
-            # Calculate the doublets rate
-            runes = processed_text.get_runes()
-            doublets_count = len([ True for i in range(len(runes) - 1) if runes[i] == runes[i + 1] ])
-            doublets_rate = doublets_count / len(runes) if len(runes) > 0 else 0.0
-
             # Decrypt
             for transformer in section.transformers:
                 transformer.transform(processed_text)
@@ -51,9 +46,6 @@ class Attempts(object):
 
             # Present section contents
             ResearchUtils.print_section_data(section, processed_text)
-
-            # Show the doublets rate
-            print(f'\n\nDoublets rate: {doublets_rate} ({doublets_count} / {len(runes)})')
 
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
