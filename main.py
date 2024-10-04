@@ -50,9 +50,11 @@ class Attempts(object):
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
-                print(f'GP-sums of runes: {gp_sum_string}\n')
+                screen.print_yellow('GP-sums of runes:', end='')
+                print(f'  {gp_sum_string}')
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(line)) for line in processed_text.split_lines(include_empty_lines=False) ])
-                print(f'GP-sums of lines: {gp_sum_string}\n')
+                screen.print_yellow('GP-sums of lines:', end='')
+                print(f' {gp_sum_string}\n')
             
             # Wait for further input if filename is available
             image_paths = [ page.filepath for page in section.pages if page.filepath is not None ]
