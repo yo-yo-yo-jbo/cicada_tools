@@ -111,19 +111,26 @@ class ResearchUtils(object):
         """
 
         # Present section contents
-        print(f'Section: {section.name}', end='')
+        screen.print_yellow('Section:', end='')
+        print(f' {section.name}', end='')
         if len(section.title) > 0:
             print(f' ("{section.title}")')
         else:
             print('')
         if processed_text is not None:
-            print(f'Runic IoC (post): {processed_text.get_rune_ioc()}\nLatin IoC: {processed_text.get_latin_ioc()}\nRune count: {len(processed_text.get_runes())}\n\n')
+            screen.print_yellow('Runic IoC (post):', end='')
+            print(f' {processed_text.get_rune_ioc()}')
+            screen.print_yellow('Latin IoC:', end='')
+            print(f' {processed_text.get_latin_ioc()}')
+            screen.print_yellow('Rune count:', end='')
+            print(f' {len(processed_text.get_runes())}\n\n')
             screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
 
         # Show page numbers if available
         page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
         if len(page_numbers_string) > 0:
-            print(f'\nPages: {page_numbers_string}')
+            screen.print_yellow('\nPages:', end='')
+            print(f' {page_numbers_string}')
 
     @staticmethod
     def launch_path(path):
