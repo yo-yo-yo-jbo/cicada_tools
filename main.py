@@ -52,8 +52,9 @@ class Attempts(object):
                 gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(word)) for word in processed_text.get_rune_words() ])
                 screen.print_yellow('GP-sums of runes:', end='')
                 print(f'  {gp_sum_string}')
-                gp_sum_string = ', '.join([ str(RuneUtils.runes_to_gp_sum(line)) for line in processed_text.split_lines(include_empty_lines=False) ])
-                screen.print_yellow('GP-sums of lines:', end='')
+                gp_sums = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
+                gp_sum_string = ', '.join([ str(s) for s in gp_sums if s > 0 ])
+                screen.print_yellow('GP-sums of sentences:', end='')
                 print(f' {gp_sum_string}\n')
             
             # Wait for further input if filename is available

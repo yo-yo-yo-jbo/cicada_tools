@@ -246,14 +246,25 @@ class ProcessedText(object):
             text = text.replace('.', ' . ')
         return [ word for word in ''.join([ c for c in text if RuneUtils.is_rune(c) or c in (' ', '.') ]).split(' ') if len(word) > 0 ]
 
-    def split_lines(self, include_empty_lines=True):
+    def split_sentences(self, include_empty=True):
+        """
+            Split text into sentences.
+        """
+
+        # Split
+        sentences = self.get_rune_text().split('.')
+        if not include_empty:
+            sentences = [ sentence for sentence in sentences if len(sentence.strip()) > 0 ]
+        return sentences
+
+    def split_lines(self, include_empty=True):
         """
             Split text into lines.
         """
 
         # Split
-        lines = self.get_rune_text().replace('/', '\n').split('\n')
-        if not include_empty_lines:
+        lines = self.get_rune_text().split('\n')
+        if not include_empty:
             lines = [ line for line in lines if len(line.strip()) > 0 ]
         return lines
 
