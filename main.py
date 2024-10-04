@@ -633,6 +633,12 @@ class Experiments(object):
                         KeystreamTransformer(keystream=iter(base_stream), add=add_option).transform(pt)
                         pt.check_measurements(stream=stream_index, add=add_option, mode='AsIs', reverse=rev_option)
 
+                        # Try the function from page 15
+                        pt.revert()
+                        func15_ks = [ abs(3301 - val) for val in base_stream ]
+                        KeystreamTransformer(keystream=iter(func15_ks), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='Func15', reverse=rev_option)
+
                         # Take the totients of the keystream
                         pt.revert()
                         totients = [ MathUtils.totient(val) for val in base_stream ]
