@@ -525,6 +525,10 @@ class Experiments(object):
         total_dec_stream_words_no_titles = []
         total_enc_stream_sentences_no_titles = []
         total_dec_stream_sentences_no_titles = []
+        product_sums_enc = []
+        product_sums_enc_no_titles = []
+        product_sums_dec = []
+        product_sums_dec_no_titles = []
 
         # Iterate all solved sections
         for section in tqdm(LiberPrimus.get_all_sections(), desc='Building streams from sections'):
@@ -557,6 +561,13 @@ class Experiments(object):
                     total_dec_stream_words += pt.get_gp_sum_of_words()
                     total_dec_stream_sentences += pt.get_gp_sum_of_sentences()
 
+                # Take the product of the GP-sums of sentences and split to groups of 3 as dictated by 2013 Parable message
+                prod_string_rev = str(sympy.prod(pt.get_gp_sum_of_sentences()))[::-1]
+                if use_enc:
+                    product_sums_enc += [ int(prod_string_rev[i:i+3][::-1]) for i in range(0, len(prod_string_rev), 3) ]
+                else:
+                    product_sums_dec += [ int(prod_string_rev[i:i+3][::-1]) for i in range(0, len(prod_string_rev), 3) ]
+
                 # Handle the section without titles
                 pt_no_titles = ProcessedText(rune_text=section.get_all_text(exclude_titles=True), section=section)
                 if pt_no_titles.get_runes() == pt.get_runes():
@@ -570,6 +581,13 @@ class Experiments(object):
                     total_dec_stream_words_no_titles += pt_no_titles.get_gp_sum_of_words()
                     total_dec_stream_sentences_no_titles += pt_no_titles.get_gp_sum_of_sentences()
 
+                # Take the product of the GP-sums of sentences and split to groups of 3 as dictated by 2013 Parable message
+                prod_string_rev = str(sympy.prod(pt_no_titles.get_gp_sum_of_sentences()))[::-1]
+                if use_enc:
+                    product_sums_enc_no_titles += [ int(prod_string_rev[i:i+3][::-1]) for i in range(0, len(prod_string_rev), 3) ]
+                else:
+                    product_sums_dec_no_titles += [ int(prod_string_rev[i:i+3][::-1]) for i in range(0, len(prod_string_rev), 3) ]
+
         # Adjust streams
         streams.append(total_enc_stream_words)
         streams.append(total_dec_stream_words)
@@ -579,12 +597,16 @@ class Experiments(object):
         streams.append(total_dec_stream_words_no_titles)
         streams.append(total_enc_stream_sentences_no_titles)
         streams.append(total_dec_stream_sentences_no_titles)
+        streams.append([ val for val in product_sums_enc if val > 0 ])
+        streams.append([ val for val in product_sums_dec if val > 0 ])
+        streams.append([ val for val in product_sums_enc_no_titles if val > 0 ])
+        streams.append([ val for val in product_sums_dec_no_titles if val > 0 ])
         streams = [ stream for stream in streams if len(stream) > 0 ]
 
         # Build primes
         max_value = max([ max(stream) for stream in streams ])
         primes = [ 2 ]
-        with tqdm(desc=f'Building {max_value} primes for stream values') as pbar:
+        with tqdm(total=max_value - 1, desc=f'Building primes for stream values') as pbar:
             while len(primes) < max_value:
                 primes.append(MathUtils.find_next_prime(primes[-1]))
                 pbar.update(1)
