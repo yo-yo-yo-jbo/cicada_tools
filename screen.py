@@ -92,19 +92,14 @@ def print_solved_text(text):
         Prettifies and prints solved text.
     """
 
-    # Color digits and lowercase
+    # Color lowercase
     s = text
-    for c in string.digits + string.ascii_lowercase:
+    for c in string.ascii_lowercase:
         s = s.replace(c, f'[!!!BLUE!!!]{c}[!!!RESET_COLORS!!!]')
     s = s.replace('[!!!RESET_COLORS!!!]', RESET_COLORS).replace('[!!!BLUE!!!]', BLUE)
 
-    # Color runes
-    for rune in RuneUtils.iter_runes():
-        s = s.replace(rune, f'{RED}{rune}{RESET_COLORS}')
-    
-    # Color uppercase
-    for letter in string.ascii_uppercase:
-        s = s.replace(letter, f'{GREEN}{letter}{RESET_COLORS}')
+    # Color titles
+    s = s.replace('<', RED).replace('>', RESET_COLORS)
 
     # Print
     print(s)
