@@ -510,19 +510,19 @@ class Attempts(object):
                         AutokeyGpTransformer(add=add_option, primer_value=primer_value, use_plaintext=use_plaintext).transform(pt)
                         pt.check_measurements(primer_value=primer_value, add=add_option, use_plaintext=use_plaintext)
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
     def gp_sum_keystream():
         """
             Attempts to use the GP-sum of each solved section words as a keystream.
             Also attempts to use the GP-sums of entire solved LP1 as a keystream.
-            Also attempts to use line GP-sums of solved sections from LP1.
+            Also attempts to use sentence GP-sums of solved sections from LP1.
         """
 
         # Build dictionary mapping solved sections to GP-sum based streams
         lp1_keystream_words = []
-        lp1_keystream_lines = []
+        lp1_keystream_sentences = []
         had_unsolved = False
         streams = []
         result = set()
@@ -543,19 +543,19 @@ class Attempts(object):
             if len(stream_words) > 0:
                 streams.append(stream_words)
 
-            # Get the line stream
-            stream_lines = [ RuneUtils.runes_to_gp_sum(line) for line in processed_text.split_lines(include_empty_lines=False) ]
-            if len(stream_lines) > 0:
-                streams.append(stream_lines)
+            # Get the sentences stream
+            stream_sentences = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in processed_text.split_sentences(include_empty=False) ]
+            if len(stream_sentences) > 0:
+                streams.append(stream_sentences)
 
             # Append current section stream to the LP1 keystreams
             if not had_unsolved:
                 lp1_keystream_words += stream_words
-                lp1_keystream_lines += stream_lines
+                lp1_keystream_sentences += stream_sentences
 
         # Add LP1 keystreams to the front of the streams
         streams.insert(0, lp1_keystream_words)
-        streams.insert(0, lp1_keystream_lines)
+        streams.insert(0, lp1_keystream_sentences)
 
         # Iterate all unsolved sections and attempt to use each stream on each section
         for section in tqdm(ResearchUtils.get_unsolved_sections()):
