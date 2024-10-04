@@ -964,7 +964,7 @@ def main():
             screen.print_green('\n\nEXECUTION COMPLETE\n')
             screen.press_enter()
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             logger.info(f'Stopped: {menu_items[choice][0]}')
             screen.print_red('\n\nSTOPPED BY USER\n')
             screen.press_enter()

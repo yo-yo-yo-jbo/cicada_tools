@@ -134,7 +134,9 @@ def run_menu(title, menu_items_list):
         print_yellow('Q', end='')
         print(' to quit, or ', end='')
         print_yellow('CTRL+C', end='')
-        print(' to get back to main menu.\n')
+        print(' (or ', end='')
+        print_yellow('CTRL+D', end='')
+        print(') to get back to main menu.\n')
 
         # Get choice and return it
         choice = input('Enter your choice: ').strip()
