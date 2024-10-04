@@ -143,7 +143,7 @@ Generates primes indexed by Fibonacci numbers, naively. Never stops until CTRL+C
 This tool was used to generate the `fibo_primes.txt` file.
 
 ## Non-technical remarks about solved sections
-* `A WARNING`: Message from Cicada: "do not modify the book". This might be a hint that even spacing or graphics are meaningful. Also, an example of a simple linear modification of each rune by its value (`Atbash`).
+* `A WARNING`: Message from Cicada: "do not modify the book". This might be a hint that even spacing or graphics are meaningful. Also, an example of a simple linear modification of each rune by its value (`Atbash`). Also this discusses the numbers *of the words* which is a strong hint to use GP-sums.
 * `WELCOME`: Vigenere cipher and use of previously seen words ("DIVINITY"), alongside `interrupters`. As of now, only the letter "F" is used for interrupters, which is meaningful when looking for cribs, as we can assume non-F ciphertext could not have been non-F plaintext.
 * `SOME WISDOM`: Message from Cicada: "the idea of GP-sums is important". A `GP-sum` is the process of taking the primes associated with each rune and summing them up to get a value for a runic word. The reference to "MOBIUS" is interesting in terms of the Mobius function. Significance to the Euler Totient function and primes, that are obviously strongly connected.
 * `A KOAN`: Encryption methods from previously solved pages could be combined (`Atbash` alongside `Caesar cipher` in this case). Additionally, basic repeating phrases and language style could be inferred ("A COAN", "AN INSTRUCTION", the fact that Cicada prefers to write down number English names ("FOUR") rather than as a number).
@@ -151,5 +151,5 @@ This tool was used to generate the `fibo_primes.txt` file.
 * `A KOAN` (2): The notion that a key could be an English word with some occurences modified ("FIRFUMFERENFE").
 * `AN INSTRUCTION`: Currently *unknown* but that square matrix was used back in 2013. Minor details: "KNOW THIS" is a potential crib.
 * `AN END` (page 64): Cribbing (guessting plaintext is "AN END") is useful, walking backwards. The decryption could be a reference to the Totient function and primes as mentioned earlier, but a Totient function on a prime is simply that prime minus 1, so maybe the Totient function still needs to be used. The hash `36367763ab73783c7af284446c59466b4cd653239a311cb7116d4618dee09a8425893dc7500b464fdaf1672d7bef5e891c6e2274568926a49fb4f45132c2a8b4` is important.
-* `Parable` (page 65): Repeating certain potential keys like "CIRCUMFERENCE" or "INSTAR".
+* `Parable` (page 65): Repeating certain potential keys like "CIRCUMFERENCE" or "INSTAR". Also note this is the same parable [used back in 2013](https://uncovering-cicada.fandom.com/wiki/What_Happened_Part_1_(2013)) so there is a subtle hint that GP-sums should be used as they were used there (maybe the product of GP-sums of sentences, excluding titles).
 
