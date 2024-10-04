@@ -510,7 +510,7 @@ class Experiments(object):
                         AutokeyGpTransformer(add=add_option, primer_value=primer_value, use_plaintext=use_plaintext).transform(pt)
                         pt.check_measurements(primer_value=primer_value, add=add_option, use_plaintext=use_plaintext)
 
-    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
     def gp_sum_keystream():
@@ -523,11 +523,16 @@ class Experiments(object):
         # Build dictionary mapping solved sections to GP-sum based streams
         lp1_keystream_words_dec = []
         lp1_keystream_sentences_dec = []
+        lp1_keystream_no_title_sentences_dec = []
+        lp1_keystream_product_dec = []
         lp1_keystream_words_enc = []
         lp1_keystream_sentences_enc = []
+        lp1_keystream_no_title_sentences_enc = []
+        lp1_keystream_product_enc = []
+
         streams = []
         result = set()
-        for section in LiberPrimus.get_all_sections():
+        for section in tqdm(LiberPrimus.get_all_sections(), desc='Building streams from sections'):
 
             # Process all text
             processed_text = ProcessedText(section=section)
@@ -565,11 +570,34 @@ class Experiments(object):
                     lp1_keystream_words_dec += stream_words
                     lp1_keystream_sentences_dec += stream_sentences
 
+                # Add GP sums without titles for runes, words and sentences
+                pt_no_title = ProcessedText(section.get_all_text(exclude_titles=True))
+                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_runes() ])
+                streams.append([ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.get_rune_words() if RuneUtils.runes_to_gp_sum(item) > 0 ])
+                sentence_sums = [ RuneUtils.runes_to_gp_sum(item) for item in pt_no_title.split_sentences(include_empty=False) if RuneUtils.runes_to_gp_sum(item) > 0 ]
+                streams.append(sentence_sums)
+                if use_encrypted:
+                    lp1_keystream_no_title_sentences_enc += sentence_sums
+                else:
+                    lp1_keystream_no_title_sentences_dec += sentence_sums
+                
+                # Add product of sentence GP sums (as seen in Parable message from 2013)
+                product = sympy.prod(sentence_sums)
+                if product > 1:
+                    if use_encrypted:
+                        lp1_keystream_product_enc.append(product)
+                    else:
+                        lp1_keystream_product_dec.append(product)
+
         # Add LP1 keystreams to the front of the streams
         streams.insert(0, lp1_keystream_words_dec)
         streams.insert(0, lp1_keystream_words_enc)
         streams.insert(0, lp1_keystream_sentences_dec)
         streams.insert(0, lp1_keystream_sentences_enc)
+        streams.insert(0, lp1_keystream_no_title_sentences_dec)
+        streams.insert(0, lp1_keystream_no_title_sentences_enc)
+        streams.insert(0, lp1_keystream_product_dec)
+        streams.insert(0, lp1_keystream_product_enc)
 
         # Iterate all unsolved sections and attempt to use each stream on each section
         for section in ResearchUtils.get_unsolved_sections():

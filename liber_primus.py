@@ -1,5 +1,6 @@
 import transformers
 
+import re
 import sys
 import os
 import json
@@ -68,6 +69,9 @@ class Page(object):
         Represents a book page.
     """
 
+    # The titles Regex
+    _TITLES_REGEX = re.compile(f'\<(.+?)\>', re.MULTILINE | re.DOTALL)
+
     def __init__(self, section, text, number=None, filepath=None):
         """
             Creates an instance.
@@ -82,6 +86,24 @@ class Page(object):
         self.text = text
         self.number = number
         self.filepath = filepath
+
+    def get_titles(self):
+        """
+            Get the page titles as an array.
+        """
+
+        # Return the titles
+        return self.__class__._TITLES_REGEX.findall(self.text)
+
+    def get_text(self, exclude_titles=False):
+        """
+            Gets the text.
+        """
+
+        # Either exclude titles or not
+        if exclude_titles:
+            return self.__class__._TITLES_REGEX.sub('', self.text)
+        return self.text
 
 class Section(object):
     """
@@ -99,18 +121,18 @@ class Section(object):
         self.transformers = transformers
         self.pages = []
 
-        # Cache
-        self._all_text = None
+        # Cache (maps booleans to text - whether to include title or not)
+        self._all_text_cache = {}
 
-    def get_all_text(self):
+    def get_all_text(self, exclude_titles=False):
         """
             Get the entire section text.
         """
 
         # Return text from all pages from cache
-        if self._all_text is None:
-            self._all_text = '\n'.join([ page.text for page in self.pages ])
-        return self._all_text
+        if exclude_titles not in self._all_text_cache:
+            self._all_text_cache[exclude_titles] = '\n'.join([ page.get_text(exclude_titles) for page in self.pages ])
+        return self._all_text_cache[exclude_titles]
 
     def get_page_numbers(self):
         """
