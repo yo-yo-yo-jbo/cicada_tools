@@ -1035,12 +1035,52 @@ class Experiments(object):
                         KeystreamTransformer(keystream=iter(keystream), add=add_option).transform(pt)
                         pt.check_measurements(const=const_name, add=add_option)
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4)) 
+    @staticmethod
+    def primes_descend_ascend(max_start_value=3301):
+        """
+            Uses primes (and Totient of primes) as they descend and then ascend.
+        """
+
+        # Validations
+        assert sympy.isprime(max_start_value), Exception('Maximum start value must be prime')
+
+        # Build primes
+        primes = [ 2 ]
+        while max_start_value not in primes:
+            primes.append(MathUtils.find_next_prime(primes[-1]))
+        rev_primes = primes[::-1]
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Iterate all start values
+            pt = ProcessedText(section=section)
+            for start_index in tqdm(range(len(rev_primes)), desc=f'Section "{section.name}"'):
+
+                # Build stream
+                ks = rev_primes[start_index:] + primes
+                
+                # Either add or substruct
+                for add_option in (False, True):
+
+                    # Run stream
+                    pt.revert()
+                    KeystreamTransformer(keystream=iter(ks), add=add_option).transform(pt)
+                    pt.check_measurements(start_value=ks[0], add=add_option, mode='AsIs')
+
+                    # Try Totients
+                    pt.revert()
+                    KeystreamTransformer(keystream=map(sympy.totient, ks), add=add_option).transform(pt)
+                    pt.check_measurements(start_value=ks[0], add=add_option, mode='Totients')
+
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def ascii_values_keystream_cribbing_bruteforce(prefix_words_threshold=2):
         """
-            Attempts to crib section words by ASCII values of dictionary words.
+            Attempts to crib section words by ascii values of dictionary words.
         """
 
         # Get English words (uppercase)
