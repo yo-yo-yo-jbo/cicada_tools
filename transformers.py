@@ -96,6 +96,18 @@ class MathUtils(object):
             yield MathUtils.totient(n)
             n += 1
 
+    @staticmethod
+    def gen_fibonacci(start_a=1, start_b=1):
+        """
+            Generates Fibonacci sequences.
+        """
+
+        # Generate forever
+        val_a, val_b = start_a, start_b
+        while True:
+            yield val_b
+            val_a, val_b = val_b, val_a + val_b
+
     @classmethod
     def get_fibo_primes(cls):
         """

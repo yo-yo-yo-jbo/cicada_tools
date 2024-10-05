@@ -605,12 +605,14 @@ class Experiments(object):
         streams.append([ val for val in product_sums_dec_no_titles if val > 0 ])
         streams = [ stream for stream in streams if len(stream) > 0 ]
 
-        # Build primes
+        # Build primes and the Fibonacci sequence
         max_value = max([ max(stream) for stream in streams ])
         primes = [ 2 ]
-        with tqdm(total=max_value - 1, desc=f'Building primes for stream values') as pbar:
+        fibonacci = [ 1, 2 ]
+        with tqdm(total=max_value - 1, desc=f'Building primes and Fibonacci numbers for stream values') as pbar:
             while len(primes) < max_value:
                 primes.append(MathUtils.find_next_prime(primes[-1]))
+                fibonacci.append(fibonacci[-2] + fibonacci[-1])
                 pbar.update(1)
         
         # Iterate all unsolved sections and attempt to use each stream on each section
@@ -670,6 +672,12 @@ class Experiments(object):
                         totient_emirp_indices = [ MathUtils.totient(val) for val in emirp_indices ]
                         KeystreamTransformer(keystream=iter(totient_emirp_indices), add=add_option).transform(pt)
                         pt.check_measurements(stream=stream_index, add=add_option, mode='TotientOfEmirpIndices', rev=rev_option)
+
+                        # Use as Fibonacci sequence indices
+                        pt.revert()
+                        fibonacci_indices = [ fibonacci[val - 1] for val in base_stream ]
+                        KeystreamTransformer(keystream=iter(fibonacci_indices), add=add_option).transform(pt)
+                        pt.check_measurements(stream=stream_index, add=add_option, mode='FibonacciIndices', rev=rev_option)
 
                         # Only take primes from the keystream
                         primes_ks = [ val for val in base_stream if sympy.isprime(val) ]
