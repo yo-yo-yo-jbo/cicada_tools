@@ -734,44 +734,59 @@ class Experiments(object):
             ModInvTransformer(use_shift_counter=True).transform(pt)
             pt.check_measurements()
 
-    @measurement(PrefixWordsMeasurement(threshold=4))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def primes_indices_apart():
+    def primes_indices_apart(max_skip=167, max_start_value=3301):
         """
-            Performs a keystream manipulation on runes based on prime numbers that are 11 or 13 indices apart.
-            This logic was concluded based on Liber Primus 1 (first solved pages) that have the numbers 107, 167, 229.
-            The number 13 was derived based on IoC analysis on several pages, specifically 54-55.
+            Performs a keystream manipulation on runes based on prime numbers that are indices apart.
         """
+
+        # Generate primes
+        assert max_skip > 0, Exception('Skip value must be strictly positive')
+        assert sympy.isprime(max_start_value), Exception('Maximal start value must be prime')
+        unsolved_sections = ResearchUtils.get_unsolved_sections()
+        max_runes = max([ ProcessedText(section=section).get_num_of_runes() for section in unsolved_sections ])
+        primes = [ 2 ]
+        start_values = [ 2 ]
+        with tqdm(desc='Generating initial primes') as pbar:
+            while max_start_value not in primes:
+                primes.append(MathUtils.find_next_prime(primes[-1]))
+                start_values.append(primes[-1])
+                pbar.update(1)
+        for i in tqdm(range((max_skip + 1) * max_runes), desc='Extending primes'):
+            primes.append(MathUtils.find_next_prime(primes[-1]))
 
         # Iterate all sections
-        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+        for section in unsolved_sections:
 
-            # Start values could be either 107 (naturally from LP1), 13 (lowest prime to start from assuming 107 is in sequence) and 2 (first prime)
-            for start_value in (107, 13, 2, 0):
-                
-                # Either adding or substructing
-                for add_option in (False, True):
+            # Iterate all start values and skip values
+            with tqdm(desc=f'Section "{section.name}"', total=max_skip * len(start_values)) as pbar:
+                for start_value in start_values:
+                    for skip_value in range(1, max_skip + 1):
 
-                    # Either work with 13 or 11
-                    for indices_apart in (13, 11):
+                        # Either adding or substructing
+                        for add_option in (False, True):
 
-                        # Use the prime sequence
-                        pt = ProcessedText(section=section)
-                        PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=indices_apart).transform(pt)
-                        pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart)
+                            # Use the prime sequence
+                            pt = ProcessedText(section=section)
+                            PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=skip_value).transform(pt)
+                            pt.check_measurements(start_value=start_value, add=add_option, skip=skip_value, mode='AsIs')
 
-                        # Try Atbash
-                        AtbashTransformer().transform(pt)
-                        pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart, mode='Atbash')
+                            # Try Atbash
+                            AtbashTransformer().transform(pt)
+                            pt.check_measurements(start_value=start_value, add=add_option, skip=skip_value, mode='Atbash')
 
-                        # Revert Atbash
-                        AtbashTransformer().transform(pt)
+                            # Revert Atbash
+                            AtbashTransformer().transform(pt)
 
-                        # Try shifting
-                        for shift_value in range(1, RuneUtils.size()):
-                            ShiftTransformer(shift=1).transform(pt)
-                            pt.check_measurements(start_value=start_value, add=add_option, skip=indices_apart, shift=shift_value)
+                            # Try shifting
+                            for shift_value in range(1, RuneUtils.size()):
+                                ShiftTransformer(shift=1).transform(pt)
+                                pt.check_measurements(start_value=start_value, add=add_option, skip=skip_value, shift=shift_value, mode='Shift')
+                        
+                        # Update progrsss bar
+                        pbar.update(1)
 
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.6)) 
