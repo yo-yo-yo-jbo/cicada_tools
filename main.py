@@ -770,7 +770,9 @@ class Experiments(object):
 
                             # Use the prime sequence
                             pt = ProcessedText(section=section)
-                            PrimesIndicesApartTransformer(add=add_option, start_value=start_value, indices_apart=skip_value).transform(pt)
+                            prime_index = primes.index(start_value)
+                            ks = [ primes[i] for i in range(prime_index, prime_index + skip_value * max_runes, skip_value) ]
+                            KeystreamTransformer(add=add_option, keystream=iter(ks)).transform(pt)
                             pt.check_measurements(start_value=start_value, add=add_option, skip=skip_value, mode='AsIs')
 
                             # Try Atbash
