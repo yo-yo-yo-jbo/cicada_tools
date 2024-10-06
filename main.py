@@ -264,7 +264,7 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def autokey_and_vigenere_bruteforce_with_reversing(min_key_len=6):
+    def autokey_and_vigenere_bruteforce_with_reversing_and_math_keystreams(min_key_len=6):
         """
             Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
             Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
@@ -291,6 +291,16 @@ class Experiments(object):
                 VigenereTransformer(key=key).transform(pt)
                 pt.check_measurements(mode='Vigenere', key=key)
 
+                # Attempts the Totient of the primes too
+                TotientPrimeTransformer().transform(pt)
+                pt.check_measurements(mode='VigenereWithTotients', key=key)
+
+                # Attempts the primes on Vigenere
+                pt.revert()
+                VigenereTransformer(key=key).transform(pt)
+                TotientPrimeTransformer(tot_calls=0).transform(pt)
+                pt.check_measurements(mode='VigenereWithPrimes', key=key)
+                
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
 
