@@ -486,8 +486,8 @@ class Experiments(object):
                     HillCipherTransformer(matrix=square, inverse=inverse_option).transform(pt)
                     pt.check_measurements(square=square_index, inverse=inverse_option)
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def gp_value_autokey():
         """
@@ -495,10 +495,10 @@ class Experiments(object):
         """
 
         # Iterate all unsolved sections
-        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all options
-            for primer_value in range(RuneUtils.size()):
+            for primer_value in tqdm(range(RuneUtils.size()), desc=f'Section "{section.name}"'):
                 for add_option in (False, True):
                     for use_plaintext in (False, True):
 
