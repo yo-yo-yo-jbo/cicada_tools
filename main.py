@@ -175,8 +175,8 @@ class Experiments(object):
                             KeystreamTransformer(keystream=iter(key), interrupt_indices=interrupt_indices).transform(pt)
                             pt.check_measurements(key=key, mode='Emirps', skip=skip, start=key[0])
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def double_tot_index_with_reversing():
         """
@@ -211,8 +211,8 @@ class Experiments(object):
                         ReverseTransformer().transform(pt)
                         pt.check_measurements()
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def totient_keystream():
         """
@@ -233,8 +233,8 @@ class Experiments(object):
                         TotientKeystreamTransformer(add=add_option, start_at_0=start_at_0).transform(pt)
                         pt.check_measurements(add=add_option, start_at_0=start_at_0)
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def use_2013_missing_primes():
         """
