@@ -261,8 +261,8 @@ class Experiments(object):
                 KeystreamTransformer(add=add, keystream=iter(emirp_ks)).transform(pt)
                 pt.check_measurements()
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def autokey_and_vigenere_bruteforce_with_reversing(min_key_len=6):
         """
