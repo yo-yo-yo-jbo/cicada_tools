@@ -382,8 +382,8 @@ class Experiments(object):
                     KeystreamTransformer(keystream=iter(func_seq), add=add_option).transform(pt)
                     pt.check_measurements(mode='Func15', sequence=seq)
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8)) 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def page15_function_keystream():
         """
@@ -395,7 +395,7 @@ class Experiments(object):
         for section in ResearchUtils.get_unsolved_sections():
 
             # Try adding or substructing
-            for add_option in (False, True):
+            for add_option in tqdm((False, True), desc=f'Section "{section.name}"'):
 
                 # Try on primes 
                 pt = ProcessedText(section=section)
