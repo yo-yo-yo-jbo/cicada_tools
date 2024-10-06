@@ -790,8 +790,8 @@ class Experiments(object):
                         # Update progrsss bar
                         pbar.update(1)
 
-    @measurement(PrefixWordsMeasurement(threshold=4))
-    @measurement(IocMeasurement(threshold=1.6)) 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def use_cuneiform_keystream():
         """
