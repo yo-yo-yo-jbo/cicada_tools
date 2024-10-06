@@ -1075,7 +1075,7 @@ class Experiments(object):
                     KeystreamTransformer(keystream=map(sympy.totient, ks), add=add_option).transform(pt)
                     pt.check_measurements(start_value=ks[0], add=add_option, mode='Totients')
 
-    @measurement(PrefixWordsMeasurement(threshold=4))
+    @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def ascii_values_keystream_cribbing_bruteforce(prefix_words_threshold=2):
@@ -1084,31 +1084,30 @@ class Experiments(object):
         """
 
         # Get English words (uppercase)
-        english = [ word for word in ResearchUtils.get_english_dictionary_words(as_runes=False) ]
- 
-        # Try lowercase or uppercase
-        for use_lower in (False, True):
+        english_uppercase = [ word.upper() for word in ResearchUtils.get_english_dictionary_words(as_runes=False) ]
 
-            # Turn lower or uppercase
-            if use_lower:
-                english = [ w.lower() for w in english ]
-            else:
-                english = [ w.upper() for w in english ]
+        # Build all word permutations (uppercase)
+        uppercase_perms = list(tqdm(itertools.combinations(english_uppercase, prefix_words_threshold), desc=f'Building permutations of {prefix_words_threshold} words with a dictionary size of {len(english_uppercase)}'))
 
-            # Work on unsolved sections
-            for section in ResearchUtils.get_unsolved_sections():
+        # Work on unsolved sections
+        for section in ResearchUtils.get_unsolved_sections():
 
-                # Get all combinations
-                pt = ProcessedText(section=section)
-                key_options = list(itertools.combinations(english, prefix_words_threshold))
-                for option in tqdm(key_options, desc=f'Section "{section.name}" (lowercase={use_lower})'):
+            # Process section
+            pt = ProcessedText(section=section)
+
+            # Apply keystream
+            for option in tqdm(uppercase_perms, desc=f'Section "{section.name}" (lowercase={use_lower})'):
+
+                # Either use uppercase or lowercase
+                for use_lower in (False, True):
 
                     # Either add or substruct
                     for add_option in (False, True):
 
                         # Map option to a keystream based on ASCII
                         pt.revert()
-                        KeystreamTransformer(keystream=map(ord, ''.join(option))).transform(pt)
+                        keystream = map(ord, ''.join(option).lower()) if use_lower else map(ord, ''.join(option))
+                        KeystreamTransformer(keystream=keystream, add=add_option).transform(pt)
                         pt.check_measurements(key=option, add=add_option, lower=use_lower)
 
 def main():
