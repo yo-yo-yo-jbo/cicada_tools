@@ -185,10 +185,10 @@ class Experiments(object):
         """
 
         # Iterate all sections
-        for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all number of totient operations
-            for tot_call_count in range(1, 3):
+            for tot_call_count in tqdm(range(1, 3), desc=f'Section "{section.name}"'):
                
                 # Try adding or substructing
                 for add_option in (False, True):
@@ -220,10 +220,10 @@ class Experiments(object):
         """
 
         # Iterate all sections
-        for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Sections being analyzed'):
+        for section in ResearchUtils.get_unsolved_sections():
 
                 # Try adding or substructing
-                for add_option in (False, True):
+                for add_option in tqdm((False, True), desc=f'Section "{section.name}"'):
 
                     # Start at zero or not
                     for start_at_0 in (False, True):
@@ -246,10 +246,10 @@ class Experiments(object):
         emirp_ks = [ int(str(p)[::-1]) for p in MISSING_PRIMES_2013 ]
 
         # Iterate all sections 
-        for section in tqdm(ResearchUtils.get_unsolved_sections()):
+        for section in ResearchUtils.get_unsolved_sections():
 
             # Whether to add or substruct
-            for add in (False, True):
+            for add in tqdm((False, True), desc=f'Section "{section.name}"'):
 
                 # Try decryption
                 pt = ProcessedText(section=section)
