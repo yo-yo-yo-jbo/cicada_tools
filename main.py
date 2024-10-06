@@ -432,8 +432,8 @@ class Experiments(object):
                 FiboPrimesTransformer(add=add_option, emirp=True).transform(pt)
                 pt.check_measurements(mode='Fibonacci-emirps', add=add_option)
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def spiral_square_keystream():
         """
@@ -446,7 +446,7 @@ class Experiments(object):
 
             # Iterate all squares
             square_index = -1
-            for square in SQUARES:
+            for square in tqdm(SQUARES, desc=f'Section "{section.name}"'):
                 
                 # Try adding or substructing
                 square_index += 1
@@ -457,8 +457,8 @@ class Experiments(object):
                     SpiralSquareKeystreamTransformer(matrix=square, add=add_option).transform(pt)
                     pt.check_measurements(square=square_index, add=add_option)
  
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
     def hill_cipher():
         """
@@ -475,7 +475,7 @@ class Experiments(object):
 
             # Iterate all squares
             square_index = -1
-            for square in squares:
+            for square in tqdm(squares, desc=f'Section "{section.name}"'):
                 
                 # Either inverse or not
                 for inverse_option in (False, True):
