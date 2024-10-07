@@ -49,10 +49,15 @@ class Experiments(object):
             # Show GP sums of solved sections
             if not processed_text.is_unsolved():
                 screen.print_yellow('GP-sums of words:', end='')
-                print(f'  {processed_text.get_gp_sum_of_words()}')
+                print(f' {processed_text.get_gp_sum_of_words()}')
                 screen.print_yellow('GP-sums of sentences:', end='')
-                print(f' {processed_text.get_gp_sum_of_sentences()}\n')
-            
+                print(f' {processed_text.get_gp_sum_of_sentences()}')
+
+            # Print transformers
+            transformers_string = ', '.join([ transformer.__class__.__name__ for transformer in section.transformers ]) if len(section.transformers) > 0 else 'DirectTranslation'
+            screen.print_yellow('Transformers:', end='')
+            print(f' {transformers_string}\n')
+
             # Wait for further input if filename is available
             image_paths = [ page.filepath for page in section.pages if page.filepath is not None ]
             if len(image_paths) > 0:
