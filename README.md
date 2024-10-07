@@ -19,7 +19,7 @@ Based on the encrypted payload, I have a few assumptions:
 3. The cipher probably treats two consecutive letters differently (e.g. like `Playfair` cipher does). This is a conclusion from the low distribution of doublets in the entire `LP2`.
 
 ## Experiments made
-All experiments are under the `Experiments` class, in `main.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
+All experiments are under the `Experiments` class, in `experiments.py`. Once executed, that file presents a menu dynamically based on all methods tried so far.  
 That's a great programmatic way of documenting all experiments.
 
 ## Coding and classes
@@ -124,7 +124,10 @@ Notes:
 3. The call to `check_measurement` can get arbitrary printable key-values (in our case, `start_value`) that will be visible in a log (and on-screen) if the measurement passes.
 
 ### main.py
-Considered to be the "main" research-based module. Note its `Experiments` class which implements experiments, as discussed previously.
+Considered to be the "main" research-based module.
+
+### experiments.py
+Contains all experiments.
 
 ### research_utils.py
 Contains research utilities such as getting unsolved sections or handling a dictionary.
