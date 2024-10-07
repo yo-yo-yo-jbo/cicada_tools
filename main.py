@@ -264,7 +264,55 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def autokey_and_vigenere_bruteforce_with_reversing_and_math_keystreams(min_key_len=6):
+    def modified_autokey_single_rune_primer_key(min_key_len=6):
+        """
+            Attempts Autokey with a single rune as a primer key, modified by applying various mathematical sequences before or after.
+        """
+
+        # Build all the different mathematical transformers
+        math_transformers = [
+            TotientPrimeTransformer(),
+            TotientPrimeTransformer(tot_calls=1),
+            FibonacciKeystreamTransformer(start_a=0, start_b=1),
+            FibonacciKeystreamTransformer(start_a=1, start_b=1),
+            FibonacciKeystreamTransformer(start_a=1, start_b=2)
+        ]
+
+        # Iterate all sections
+        runes = [ RuneUtils.rune_at(index) for index in range(RuneUtils.size()) ]
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Process section
+            pt = ProcessedText(section=section)
+
+            # Iterate all runes as keys
+            for rune in tqdm(runes, desc=f'Section {section.name}'):
+
+                # Iterate all Autokey modes
+                for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
+
+                    # Iterate all subsets of the math transformers
+                    for transformer_subset in MathUtils.get_all_subsets(math_transformers):
+                        for transformer_order in itertools.permutations(transformer_subset):
+
+                            # Apply Autokey and then transformers
+                            pt.revert()
+                            AutokeyTransformer(key=rune, mode=mode).transform(pt)
+                            for transformer in transformer_order:
+                                transformer.transform(pt)
+                            pt.check_measurements(mode=mode, rune=rune, math_order=', '.join([ transformer.__class__.__name__ for transformer in transformer_order ]), autokey_order='AutokeyThenMath')
+
+                            # Apply transformers and then Autokey
+                            pt.revert()
+                            for transformer in transformer_order:
+                                transformer.transform(pt)
+                            AutokeyTransformer(key=rune, mode=mode).transform(pt)
+                            pt.check_measurements(mode=mode, rune=rune, math_order=', '.join([ transformer.__class__.__name__ for transformer in transformer_order ]), autokey_order='MathThenAutokey')
+
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def autokey_and_vigenere_bruteforce(min_key_len=6):
         """
             Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
             Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".

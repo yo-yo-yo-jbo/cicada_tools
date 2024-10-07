@@ -1,10 +1,12 @@
 from core import RuneUtils
+
 from abc import ABC
 from abc import abstractmethod
 import sympy
 from enum import Enum
 from core import ProcessedText
 import os
+import itertools
 
 # Autokey modes
 AutokeyMode = Enum('AutokeyMode', [ 'PLAINTEXT', 'CIPHERTEXT', 'ALT_START_PLAINTEXT', 'ALT_START_CIPHERTEXT', 'ALT_MOBIUS_START_PLAINTEXT', 'ALT_MOBIUS_START_CIPHERTEXT' ])
@@ -16,6 +18,15 @@ class MathUtils(object):
 
     # Fibonacci primes cache
     _FIBO_PRIMES_CACHE = None
+
+    @staticmethod
+    def get_all_subsets(li):
+        """
+            Gets all subsets of a given list.
+        """
+
+        # Get all subsets
+        return itertools.chain.from_iterable(itertools.combinations(li, r) for r in range(len(li) + 1))
 
     @staticmethod
     def find_next_prime(prev_prime):
