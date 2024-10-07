@@ -21,6 +21,7 @@ def main():
     while True:
 
         # Run menu
+        choice = None
         try:
             choice = screen.run_menu('== METHODS AVAILABLE ==', menu_items)
 
@@ -38,10 +39,11 @@ def main():
             screen.press_enter()
 
         except (KeyboardInterrupt, EOFError):
-            logger.info(f'Stopped: {menu_items[choice][0]}')
-            screen.print_red('\n\nSTOPPED BY USER\n')
-            screen.press_enter()
-            continue
+            if choice is not None:
+                logger.info(f'Stopped: {menu_items[choice][0]}')
+                screen.print_red('\n\nSTOPPED BY USER\n')
+                screen.press_enter()
+                continue
 
 if __name__ == '__main__':
     main()
