@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from main import Attempts
+from experiments import Experiments
 import screen
 
 def main():
@@ -9,7 +9,7 @@ def main():
 
     # Shows all pages
     screen.clear()
-    Attempts.show_all_sections(True)
+    Experiments.show_all_sections(True)
 
 if __name__ == '__main__':
     main()
