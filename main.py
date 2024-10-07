@@ -1061,54 +1061,6 @@ class Experiments(object):
                             # Update progress bar
                             pbar.update(1)
 
-    @measurement(PrefixWordsMeasurement(threshold=3))
-    @measurement(IocMeasurement(threshold=1.4))
-    @staticmethod
-    def alberti_cipher_bruteforce(max_period=26):
-        """
-            Attempts to brute-force Alberti cipher configurations.
-        """
-
-        # Build all the different mathematical transformers
-        math_transformers = [
-            TotientPrimeTransformer(),
-            TotientPrimeTransformer(tot_calls=1),
-            FibonacciKeystreamTransformer(start_a=0, start_b=1),
-            FibonacciKeystreamTransformer(start_a=1, start_b=1),
-            FibonacciKeystreamTransformer(start_a=1, start_b=2)
-        ]
-
-        # Iterate all sections
-        runes = [ RuneUtils.rune_at(index) for index in range(RuneUtils.size()) ]
-        for section in ResearchUtils.get_unsolved_sections():
-
-            # Process section
-            pt = ProcessedText(section=section)
-
-            # Iterate all start values
-            with tqdm(total=RuneUtils.size() * (RuneUtils.size() - 1) * max_period, desc=f'Section "{section.name}"') as pbar:
-                for period in range(1, max_period + 1):
-                    for periodic_increment in range(1, RuneUtils.size()):
-                        for initial_shift in range(RuneUtils.size()):
-
-                            # Iterate all subsets of the math transformers
-                            for transformer_subset in MathUtils.get_all_subsets(math_transformers):
-                                for transformer_order in itertools.permutations(transformer_subset):
-
-                                    # Apply Alberti and then transformers
-                                    pt.revert()
-                                    AlbertiTransformer(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift).transform(pt)
-                                    for transformer in transformer_order:
-                                        transformer.transform(pt)
-                                    pt.check_measurements(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift, math_order=', '.join([ transformer.__class__.__name__ for transformer in transformer_order ]), autokey_order='AlbertiThenMath')
-
-                                    # Apply transformers and then Autokey
-                                    pt.revert()
-                                    for transformer in transformer_order:
-                                        transformer.transform(pt)
-                                    AlbertiTransformer(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift).transform(pt)
-                                    pt.check_measurements(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift, math_order=', '.join([ transformer.__class__.__name__ for transformer in transformer_order ]), autokey_order='MathThenAlberti')
-
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
