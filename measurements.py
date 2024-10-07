@@ -10,7 +10,7 @@ _MEASUREMENTS_CACHE = {}
 
 def measurement(measurement_instance):
     """
-        Acts as a decorator that could be used for attempts.
+        Acts as a decorator that could be used for experiments.
     """
 
     def wrapper(func):
