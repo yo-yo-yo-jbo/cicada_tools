@@ -8,8 +8,12 @@ def main():
     """
 
     # Shows all pages
-    screen.clear()
-    Experiments.show_all_sections(True)
+    try:
+        screen.clear()
+        Experiments.show_all_sections(True)
+
+    except (KeyboardInterrupt, EOFError):
+        return
 
 if __name__ == '__main__':
     main()
