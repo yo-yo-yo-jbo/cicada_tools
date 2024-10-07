@@ -300,7 +300,13 @@ class Experiments(object):
                 VigenereTransformer(key=key).transform(pt)
                 TotientPrimeTransformer(tot_calls=0).transform(pt)
                 pt.check_measurements(mode='VigenereWithPrimes', key=key)
-                
+               
+                # Attempts Totient of primes and then Vigenere
+                pt.revert()
+                TotientPrimeTransformer().transform(pt)
+                VigenereTransformer(key=key).transform(pt)
+                pt.check_measurements(mode='TotientsWithVigenere', key=key)
+
                 # Iterate all modes
                 for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
 
@@ -323,6 +329,12 @@ class Experiments(object):
                         ReverseTransformer().transform(pt)
                         AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
                         pt.check_measurements(mode=f'Reversing then Autokey {mode}', key=key)
+
+                        # Attempts Totient of primes and Autokey
+                        pt.revert()
+                        TotientPrimeTransformer().transform(pt)
+                        AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
+                        pt.check_measurements(mode=f'Autokey {mode}', key=key)
 
     @measurement(PrefixWordsMeasurement(threshold=6))
     @measurement(IocMeasurement(threshold=1.8))
