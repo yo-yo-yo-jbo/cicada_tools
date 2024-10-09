@@ -190,6 +190,7 @@ class ProcessedText(object):
         pt = ProcessedText(other._orig)
         pt._processed_runes = other._processed_runes[:]
         pt._is_unsolved = other._is_unsolved
+        pt.section = other.section
         return pt
 
     def set_unsolved(self):
