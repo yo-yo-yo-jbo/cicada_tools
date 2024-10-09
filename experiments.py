@@ -1184,18 +1184,15 @@ class Experiments(object):
                         pt.check_measurements(key=option, add=add_option, lower=use_lower)
 
     @measurement(PrefixWordsMeasurement(threshold=3))
-    @measurement(IocMeasurement(threshold=1.005)) 
+    @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
     def frequency_based_bigraph_substitution():
         """
             Attempts to apply bigraph substitutions based on solved pages frequences.
         """
 
-        # Maintains statistics (maps solved \ unsolved to dictionaries)
-        bigraph_stats = {
-            False: {},
-            True: {}
-        }
+        # Maintains statistics for solved bigraphs
+        solved_bigraph_stats = {}
 
         # Gain statistics on solved pages
         for section in tqdm(LiberPrimus.get_all_sections(), desc='Building bigraph mapping'):
@@ -1207,25 +1204,24 @@ class Experiments(object):
             for transformer in section.transformers:
                 transformer.transform(pt)
 
-            # Get runes and optionally extend padding by one rune
+            # Skip non-solved
+            if pt.is_unsolved():
+                continue
+
+            # Get runes and optionally extend padding by one rune ("F")
             runes = pt.get_runes()
             if len(runes) % 2 != 0:
                 runes += [ RuneUtils.rune_at(0) ]
 
             # Gather statistics
-            is_solved = not pt.is_unsolved()
             for i in range(0, len(runes), 2):
                 bigraph = ''.join(runes[i:i+2])
-                if bigraph not in bigraph_stats[is_solved]:
-                    bigraph_stats[is_solved][bigraph] = 0
-                bigraph_stats[is_solved][bigraph] += 1
+                if bigraph not in solved_bigraph_stats:
+                    solved_bigraph_stats[bigraph] = 0
+                solved_bigraph_stats[bigraph] += 1
 
-        # Perform best-matching (greedy) between solved and unsolved bigraphs
-        solved_bigraphs = sorted([ (v, k) for k, v in bigraph_stats[True].items() ], reverse=True)
-        unsolved_bigraphs = sorted([ (v, k) for k, v in bigraph_stats[False].items() ], reverse=True)
-        mapping = {}
-        while len(unsolved_bigraphs) > 0 and len(solved_bigraphs) > 0:
-            mapping[unsolved_bigraphs.pop()[1]] = solved_bigraphs.pop()[1]
+        # Get the solved bigraphs sorted descending
+        solved_bigraphs = sorted([ (v, k) for k, v in solved_bigraph_stats.items() ], reverse=True)
 
         # Work on each unsolved section now
         for section in ResearchUtils.get_unsolved_sections():
@@ -1233,10 +1229,27 @@ class Experiments(object):
             # Process section
             pt = ProcessedText(section=section)
 
-            # Apply mapping
+            # Get the runes and optionally extend padding by one rune ("F")
             runes = pt.get_runes()
             if len(runes) % 2 != 0:
                 runes += [ RuneUtils.rune_at(0) ]
+
+            # Gather statistics
+            unsolved_bigraph_stats = {}
+            for i in range(0, len(runes), 2):
+                bigraph = ''.join(runes[i:i+2])
+                if bigraph not in unsolved_bigraph_stats:
+                    unsolved_bigraph_stats[bigraph] = 0
+                unsolved_bigraph_stats[bigraph] += 1
+
+            # Perform best-matching (greedy) between solved and unsolved bigraphs
+            unsolved_bigraphs = sorted([ (v, k) for k, v in unsolved_bigraph_stats.items() ], reverse=True)
+            mapping = {}
+            solved_bigraphs_temp = solved_bigraphs[:]
+            while len(unsolved_bigraphs) > 0 and len(solved_bigraphs_temp) > 0:
+                mapping[unsolved_bigraphs.pop()[1]] = solved_bigraphs_temp.pop()[1]
+
+            # Apply mapping
             new_runes = ''
             for i in tqdm(range(0, len(runes), 2), desc=f'Section "{section.name}"'):
                 bigraph = ''.join(runes[i:i+2])
