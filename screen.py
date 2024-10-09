@@ -121,7 +121,7 @@ def run_menu(title, menu_items_list):
         print_yellow(title)
 
         # Print menu item
-        dots_max_len = len(str(len(menu_items_list))) + 15 + max([ len(item[0]) for item in menu_items_list ])
+        dots_max_len = len(str(len(menu_items_list))) + 3 + max([ len(item[0]) for item in menu_items_list ])
         index = 0
         for k, v in menu_items_list:
             index += 1
