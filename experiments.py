@@ -1183,3 +1183,66 @@ class Experiments(object):
                         KeystreamTransformer(keystream=keystream, add=add_option).transform(pt)
                         pt.check_measurements(key=option, add=add_option, lower=use_lower)
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.005)) 
+    @staticmethod
+    def frequency_based_bigraph_substitution():
+        """
+            Attempts to apply bigraph substitutions based on solved pages frequences.
+        """
+
+        # Maintains statistics (maps solved \ unsolved to dictionaries)
+        bigraph_stats = {
+            False: {},
+            True: {}
+        }
+
+        # Gain statistics on solved pages
+        for section in tqdm(LiberPrimus.get_all_sections(), desc='Building bigraph mapping'):
+
+            # Build the processed text
+            pt = ProcessedText(section=section)
+
+            # Decrypt
+            for transformer in section.transformers:
+                transformer.transform(pt)
+
+            # Get runes and optionally extend padding by one rune
+            runes = pt.get_runes()
+            if len(runes) % 2 != 0:
+                runes += [ RuneUtils.rune_at(0) ]
+
+            # Gather statistics
+            is_solved = not pt.is_unsolved()
+            for i in range(0, len(runes), 2):
+                bigraph = ''.join(runes[i:i+2])
+                if bigraph not in bigraph_stats[is_solved]:
+                    bigraph_stats[is_solved][bigraph] = 0
+                bigraph_stats[is_solved][bigraph] += 1
+
+        # Perform best-matching (greedy) between solved and unsolved bigraphs
+        solved_bigraphs = sorted([ (v, k) for k, v in bigraph_stats[True].items() ], reverse=True)
+        unsolved_bigraphs = sorted([ (v, k) for k, v in bigraph_stats[False].items() ], reverse=True)
+        mapping = {}
+        while len(unsolved_bigraphs) > 0 and len(solved_bigraphs) > 0:
+            mapping[unsolved_bigraphs.pop()[1]] = solved_bigraphs.pop()[1]
+
+        # Work on each unsolved section now
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Process section
+            pt = ProcessedText(section=section)
+
+            # Apply mapping
+            runes = pt.get_runes()
+            if len(runes) % 2 != 0:
+                runes += [ RuneUtils.rune_at(0) ]
+            new_runes = ''
+            for i in tqdm(range(0, len(runes), 2), desc=f'Section "{section.name}"'):
+                bigraph = ''.join(runes[i:i+2])
+                new_runes += mapping.get(bigraph, bigraph)
+            if len(pt.get_runes()) % 2 != 0:
+                new_runes = new_runes[:-1]
+            pt.set_runes([ rune for rune in new_runes ])
+            pt.check_measurements()
+
