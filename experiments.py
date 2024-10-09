@@ -1046,6 +1046,7 @@ class Experiments(object):
     @staticmethod
     def alberti_cipher_bruteforce(max_period=26):
         """
+            Brute forces Alberti cipher configurations.
         """
 
         # Iterate all sections
