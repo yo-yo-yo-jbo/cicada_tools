@@ -336,10 +336,8 @@ class ProcessedText(object):
         """
             Translates to Latin.
         """
-
-        # Translate to Latin unless unsolved
-        if self._is_unsolved:
-            return '<UNSOLVED>'
+        
+        # Translate to Latin
         text = self.get_rune_text()
         result = []
         for c in text:
@@ -347,7 +345,12 @@ class ProcessedText(object):
                 result.append(RuneUtils.latin_at(RuneUtils.get_rune_index(c)))
             else:
                 result.append(c)
-        return ''.join(result)
+        all_text = ''.join(result)
+
+        # Add prefix if unsolved
+        if self._is_unsolved:
+            all_text = f'<UNSOLVED>\n\n{all_text}'
+        return all_text
 
     @staticmethod
     def _get_ioc(text, alphabet):

@@ -72,7 +72,8 @@ class MeasurementBase(ABC):
         # Print data and log it
         logger = logging.getLogger(__name__)
         logger.info(f'{self.__class__.__name__}: {measurement}\n')
-        screen.print_yellow(f'{self.__class__.__name__}: {measurement}\n')
+        screen.print_yellow(self.__class__.__name__, end='')
+        print(f': {measurement}\n')
         for kwd in kwds:
             logger.info(f'{kwd}: {kwds[kwd]}')
             screen.print_yellow(f'{kwd}:', end='')
