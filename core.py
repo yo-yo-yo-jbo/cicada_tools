@@ -403,5 +403,8 @@ class ProcessedText(object):
         # Run all measurements and stop at first success
         for measurement in self._measurements:
             if measurement.measure(self, **kwds):
-                return
+                return True
+
+        # Indicate failure
+        return False
 
