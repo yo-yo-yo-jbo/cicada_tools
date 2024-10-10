@@ -1187,16 +1187,17 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
-    def frequency_based_bigraph_substitution():
+    def frequency_based_ngram_substitution(n=2):
         """
-            Attempts to apply bigraph substitutions based on solved pages frequences.
+            Attempts to apply n-gram substitutions based on solved pages frequences.
         """
 
-        # Maintains statistics for solved bigraphs
-        solved_bigraph_stats = {}
+        # Maintains statistics for solved n-grams
+        assert n >= 1, Exception(f'Invalid value {n} for n-grams')
+        solved_ngram_stats = {}
 
         # Gain statistics on solved pages
-        for section in tqdm(LiberPrimus.get_all_sections(), desc='Building bigraph mapping'):
+        for section in tqdm(LiberPrimus.get_all_sections(), desc=f'Building {n}-gram mapping'):
 
             # Build the processed text
             pt = ProcessedText(section=section)
@@ -1211,18 +1212,18 @@ class Experiments(object):
 
             # Get runes and optionally extend padding by one rune ("F")
             runes = pt.get_runes()
-            if len(runes) % 2 != 0:
+            while len(runes) % n != 0:
                 runes += [ RuneUtils.rune_at(0) ]
 
             # Gather statistics
-            for i in range(0, len(runes), 2):
-                bigraph = ''.join(runes[i:i+2])
-                if bigraph not in solved_bigraph_stats:
-                    solved_bigraph_stats[bigraph] = 0
-                solved_bigraph_stats[bigraph] += 1
+            for i in range(0, len(runes), n):
+                ngram = ''.join(runes[i:i+n])
+                if ngram not in solved_ngram_stats:
+                    solved_ngram_stats[ngram] = 0
+                solved_ngram_stats[ngram] += 1
 
-        # Get the solved bigraphs sorted descending
-        solved_bigraphs = sorted([ (v, k) for k, v in solved_bigraph_stats.items() ], reverse=True)
+        # Get the solved n-grams sorted descending
+        solved_ngrams = sorted([ (v, k) for k, v in solved_ngram_stats.items() ], reverse=True)
 
         # Work on each unsolved section now
         for section in ResearchUtils.get_unsolved_sections():
@@ -1232,31 +1233,30 @@ class Experiments(object):
 
             # Get the runes and optionally extend padding by one rune ("F")
             runes = pt.get_runes()
-            if len(runes) % 2 != 0:
+            while len(runes) % n != 0:
                 runes += [ RuneUtils.rune_at(0) ]
 
             # Gather statistics
-            unsolved_bigraph_stats = {}
-            for i in range(0, len(runes), 2):
-                bigraph = ''.join(runes[i:i+2])
-                if bigraph not in unsolved_bigraph_stats:
-                    unsolved_bigraph_stats[bigraph] = 0
-                unsolved_bigraph_stats[bigraph] += 1
+            unsolved_ngram_stats = {}
+            for i in range(0, len(runes), n):
+                ngram = ''.join(runes[i:i+n])
+                if ngram not in unsolved_ngram_stats:
+                    unsolved_ngram_stats[ngram] = 0
+                unsolved_ngram_stats[ngram] += 1
 
-            # Perform best-matching (greedy) between solved and unsolved bigraphs
-            unsolved_bigraphs = sorted([ (v, k) for k, v in unsolved_bigraph_stats.items() ], reverse=True)
+            # Perform best-matching (greedy) between solved and unsolved n-grams
+            unsolved_ngrams = sorted([ (v, k) for k, v in unsolved_ngram_stats.items() ], reverse=True)
             mapping = {}
-            solved_bigraphs_temp = solved_bigraphs[:]
-            while len(unsolved_bigraphs) > 0 and len(solved_bigraphs_temp) > 0:
-                mapping[unsolved_bigraphs.pop()[1]] = solved_bigraphs_temp.pop()[1]
+            solved_ngrams_temp = solved_ngrams[:]
+            while len(unsolved_ngrams) > 0 and len(solved_ngrams_temp) > 0:
+                mapping[unsolved_ngrams.pop()[1]] = solved_ngrams_temp.pop()[1]
 
             # Apply mapping
             new_runes = ''
-            for i in tqdm(range(0, len(runes), 2), desc=f'Section "{section.name}"'):
-                bigraph = ''.join(runes[i:i+2])
-                new_runes += mapping.get(bigraph, bigraph)
-            if len(pt.get_runes()) % 2 != 0:
-                new_runes = new_runes[:-1]
+            for i in tqdm(range(0, len(runes), n), desc=f'Section "{section.name}"'):
+                ngram = ''.join(runes[i:i+n])
+                new_runes += mapping.get(ngram, ngram)
+            new_runes = new_runes[:len(pt.get_runes())]
             pt.set_runes([ rune for rune in new_runes ])
             pt.check_measurements()
 
