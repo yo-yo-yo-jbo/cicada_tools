@@ -1315,30 +1315,35 @@ class Experiments(object):
                 pt.check_measurements(key1=key_pair[0], key2=key_pair[1])
 
     @staticmethod
-    def deep_hash_bruteforce(addr_len_no_onion=16, hash_alg=hashlib.sha512):
+    def deep_hash_pastebin_bruteforce(hash_alg=hashlib.sha512):
         """
-            Attempts to bruteforce the deep hash using a given hash algorithm.
+            Attempts to bruteforce the deep hash using a given hash algorithm on pastebin.
         """
 
         # Get the deep hash as bytes
         deep_hash = binascii.unhexlify(DEEP_HASH)
         assert len(deep_hash) == len(hash_alg(b'').digest()), Exception(f'Given hash algorithm does not produce {len(deep_hash)} bytes')
 
-        # Define candidate suffix options
-        suffix_options = (b'', b'.onio', b'.onion')
+        # Define the prefix and the alphabet
+        prefix = 'https://pastebin.com/raw/'
+        letters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+        suffix_len = 8
 
         # Iterate all options
-        letters = string.ascii_lowercase + string.digits
-        total = len(letters)**addr_len_no_onion
+        total = len(letters)**suffix_len
         with tqdm(total=total, desc='Running deep hash bruteforce') as pbar:
             for option in itertools.product(letters, repeat=addr_len_no_onion):
-                
-                # Try all suffix options
-                for suffix_option in suffix_options:
-                    candidate = ''.join(option).encode() + suffix_option
-                    if hash_alg(candidate).digest() == deep_hash:
-                        screen.print_yellow('candidate', end='')
-                        print(' generates the deep hash!')
+               
+                # Fetch data
+                url = prefix + ''.join(option)
+                response = requests.get(url)
+                if response.ok:
+                    if hash_alg(response.content).digest() == deep_hash:
+                        screen.print_yellow(url, end='')
+                        print(' generates the deep hash!\n\n')
+                        screen.print_red(response.text)
                         break
+                
+                # Update progress bar
                 pbar.update(1)
 
