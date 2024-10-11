@@ -1260,3 +1260,55 @@ class Experiments(object):
             pt.set_runes([ rune for rune in new_runes ])
             pt.check_measurements()
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4)) 
+    @staticmethod
+    def vigenere_keyswitch_bruteforce(min_key_len=6):
+        """
+            Attempts to decrypt using a modified Vigenere cipher that changes the key when next ciphertext is equal to previous one.
+        """
+
+        # Build potential keys
+        keys = ResearchUtils.get_rune_wordlist()
+        rev_keys = [ k[::-1] for k in keys ]
+        keys += [ k.replace(k[0], RuneUtils.rune_at(0)) for k in keys ]
+        keys += rev_keys
+        keys = [ k for k in keys if len(k) > min_key_len ]
+        keys = set(keys)
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Define processed text
+            pt = ProcessedText(section=section)
+
+            # Iterate all key pairs
+            key_pairs = list(itertools.permutations(keys, 2))
+            for key_pair in tqdm(key_pairs, desc=f'Section "{section.name}"'):
+
+                # Define the key indices
+                key_values = [ [ RuneUtils.get_rune_index(rune) for rune in key ] for key in key_pair ]
+                key_indices = [ 0, 0 ]
+                curr_key_index = 0
+
+                # Iterate runes
+                pt.revert()
+                result = []
+                for rune in pt.get_runes():
+                    
+                    # Apply Vigenere on current key
+                    new_rune = RuneUtils.rune_at((RuneUtils.get_rune_index(rune) - key_values[curr_key_index][key_indices[curr_key_index]]) % RuneUtils.size())
+
+                    # Optionally change key
+                    if len(result) > 0 and result[-1] == new_rune:
+                        curr_key_index = (curr_key_index + 1) % len(key_indices)
+                        new_rune = RuneUtils.rune_at((RuneUtils.get_rune_index(rune) - key_values[curr_key_index][key_indices[curr_key_index]]) % RuneUtils.size())
+
+                    # Increase key index and append rune to result
+                    key_indices[curr_key_index] = (key_indices[curr_key_index] + 1) % len(key_values[curr_key_index])
+                    result.append(new_rune)
+
+                # Apply result and measure
+                pt.set_runes(result)
+                pt.check_measurements(key1=key_pair[0], key2=key_pair[1])
+
