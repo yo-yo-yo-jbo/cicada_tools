@@ -1362,6 +1362,7 @@ class Experiments(object):
             lambda gp, ksi: ksi - gp,
             lambda gp, ksi: -ksi - gp,
             lambda gp, ksi: gp * ksi,
+            lambda gp, ksi: MathUtils.totient(gp) + ksi,
         ]
 
         # Work on unsolved sections
