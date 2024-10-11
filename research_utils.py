@@ -124,8 +124,8 @@ class ResearchUtils(object):
             print(f' {processed_text.get_latin_ioc()}')
             screen.print_yellow('Rune count:', end='')
             print(f' {len(processed_text.get_runes())}\n\n')
-            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{section.get_all_text()}\n\n\n')
-
+            screen.print_solved_text(f'{processed_text.to_latin()}\n\n{processed_text.get_rune_text()}\n\n\n')
+        
         # Show page numbers if available
         page_numbers_string = ', '.join([ str(number) for number in section.get_page_numbers() ])
         if len(page_numbers_string) > 0:
