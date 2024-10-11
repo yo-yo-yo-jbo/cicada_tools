@@ -1332,7 +1332,7 @@ class Experiments(object):
         # Iterate all options
         total = len(letters)**suffix_len
         with tqdm(total=total, desc='Running deep hash bruteforce') as pbar:
-            for option in itertools.product(letters, repeat=addr_len_no_onion):
+            for option in itertools.product(letters, repeat=suffix_len):
                
                 # Fetch data
                 url = prefix + ''.join(option)
