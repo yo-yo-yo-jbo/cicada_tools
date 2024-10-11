@@ -1347,3 +1347,64 @@ class Experiments(object):
                 # Update progress bar
                 pbar.update(1)
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def common_keystreams_with_gp_values():
+        """
+            Attempts common keystreams combined with GP-values.
+        """
+
+        # Define functions that use GP values and keystream items
+        funcs = [
+            lambda gp, ksi: gp + ksi,
+            lambda gp, ksi: gp - ksi,
+            lambda gp, ksi: ksi - gp,
+            lambda gp, ksi: -ksi - gp,
+            lambda gp, ksi: gp * ksi,
+        ]
+
+        # Work on unsolved sections
+        unsolved_sections = ResearchUtils.get_unsolved_sections()
+        max_runes = max([ ProcessedText(section=section).get_num_of_runes() for section in unsolved_sections ]) + 1
+
+        # Define the keystreams
+        keystreams = {
+            'primes '               : list(itertools.islice(MathUtils.gen_primes(), max_runes)),
+            'totients_start_at_1'   : list(itertools.islice(MathUtils.gen_totients(), max_runes)),
+            'totients_start_at_0'   : list(itertools.islice(MathUtils.gen_totients(start_at_0=True), max_runes)),
+            'fibonacci_1_1'         : list(itertools.islice(MathUtils.gen_fibonacci(start_a=1, start_b=1), max_runes)),
+            'fibonacci_0_1'         : list(itertools.islice(MathUtils.gen_fibonacci(start_a=0, start_b=1), max_runes)),
+            'fibonacci_1_0'         : list(itertools.islice(MathUtils.gen_fibonacci(start_a=1, start_b=0), max_runes)),
+            'fibonacci_1_2'         : list(itertools.islice(MathUtils.gen_fibonacci(start_a=1, start_b=2), max_runes)),
+            'pi_digits_whole'       : list(map(int, str(sympy.N(sympy.pi, max_runes)).replace('.', ''))),
+            'pi_digits_fraction'    : list(map(int, str(sympy.N(sympy.pi, max_runes)).split('.')[1])),
+            'e_digits_whole'        : list(map(int, str(sympy.N(sympy.exp(1), max_runes)).replace('.', ''))),
+            'e_digits_fraction'     : list(map(int, str(sympy.N(sympy.exp(1), max_runes)).split('.')[1])),
+            'phi_digits_whole'      : list(map(int, str(sympy.N(sympy.S.GoldenRatio, max_runes)).replace('.', ''))),
+            'phi_digits_fraction'   : list(map(int, str(sympy.N(sympy.S.GoldenRatio, max_runes)).split('.')[1])),
+            'sqrt2_digits_whole'    : list(map(int, str(sympy.N(sympy.sqrt(2), max_runes)).replace('.', ''))),
+            'sqrt2_digits_fraction' : list(map(int, str(sympy.N(sympy.sqrt(2), max_runes)).split('.')[1])),
+        }
+
+        # Iterate unsolved sections
+        for section in unsolved_sections:
+
+            # Process text and get the GP values
+            pt = ProcessedText(section=section)
+            gp_values = pt.get_gp_sum_of_runes()
+
+            # Iterate all keystreams
+            for keystream_name in tqdm(keystreams, desc=f'Section "{section.name}"'):
+
+                # Iterate all functions
+                func_index = -1
+                for func in funcs:
+
+                    # Revert and apply keystream
+                    func_index += 1
+                    pt.revert()
+                    keystream = [ func(gp_values[i], keystreams[keystream_name][i]) for i in range(len(gp_values)) ]
+                    KeystreamTransformer(keystream=iter(keystream)).transform(pt)
+                    pt.check_measurements(func_index=func_index, keystream_name=keystream_name)
+
