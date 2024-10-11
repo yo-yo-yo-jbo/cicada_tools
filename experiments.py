@@ -17,6 +17,8 @@ import gzip
 import shutil
 import sympy
 import subprocess
+import hashlib
+import binascii
 
 class Experiments(object):
     """
@@ -1187,7 +1189,7 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4)) 
     @staticmethod
-    def frequency_based_ngram_substitution(n=2):
+    def frequency_based_ngram_substitution(n=3):
         """
             Attempts to apply n-gram substitutions based on solved pages frequences.
         """
@@ -1311,4 +1313,32 @@ class Experiments(object):
                 # Apply result and measure
                 pt.set_runes(result)
                 pt.check_measurements(key1=key_pair[0], key2=key_pair[1])
+
+    @staticmethod
+    def deep_hash_bruteforce(addr_len_no_onion=16, hash_alg=hashlib.sha512):
+        """
+            Attempts to bruteforce the deep hash using a given hash algorithm.
+        """
+
+        # Get the deep hash as bytes
+        deep_hash = binascii.unhexlify(DEEP_HASH)
+        assert len(deep_hash) == len(hash_alg(b'').digest()), Exception(f'Given hash algorithm does not produce {len(deep_hash)} bytes')
+
+        # Define candidate suffix options
+        suffix_options = (b'', b'.onio', b'.onion')
+
+        # Iterate all options
+        letters = string.ascii_lowercase + string.digits
+        total = len(letters)**addr_len_no_onion
+        with tqdm(total=total, desc='Running deep hash bruteforce') as pbar:
+            for option in itertools.product(letters, repeat=addr_len_no_onion):
+                
+                # Try all suffix options
+                for suffix_option in suffix_options:
+                    candidate = ''.join(option).encode() + suffix_option
+                    if hash_alg(candidate).digest() == deep_hash:
+                        screen.print_yellow('candidate', end='')
+                        print(' generates the deep hash!')
+                        break
+                pbar.update(1)
 
