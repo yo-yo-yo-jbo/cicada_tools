@@ -1370,7 +1370,11 @@ class Experiments(object):
 
         # Define the keystreams
         keystreams = {
-            'primes '               : list(itertools.islice(MathUtils.gen_primes(), max_runes)),
+            'primes'                : list(itertools.islice(MathUtils.gen_primes(), max_runes)),
+            'primes_start_at_3301'  : list(itertools.islice(MathUtils.gen_primes(first_value=3301), max_runes)),
+            'primes_start_at_1033'  : list(itertools.islice(MathUtils.gen_primes(first_value=1033), max_runes)),
+            'primes_start_at_761'   : list(itertools.islice(MathUtils.gen_primes(first_value=761), max_runes)),
+            'primes_start_at_167'   : list(itertools.islice(MathUtils.gen_primes(first_value=167), max_runes)),
             'totients_start_at_1'   : list(itertools.islice(MathUtils.gen_totients(), max_runes)),
             'totients_start_at_0'   : list(itertools.islice(MathUtils.gen_totients(start_at_0=True), max_runes)),
             'fibonacci_1_1'         : list(itertools.islice(MathUtils.gen_fibonacci(start_a=1, start_b=1), max_runes)),
