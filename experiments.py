@@ -794,21 +794,36 @@ class Experiments(object):
             pt.set_runes([ RuneUtils.rune_at(index) for index in MathUtils.matrix_to_spiral_stream(matrix) ])
             pt.check_measurements(size=f'{side}x{side}')
 
-    @measurement(PrefixWordsMeasurement(threshold=6))
-    @measurement(IocMeasurement(threshold=1.8))
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def modular_inverse():
+    def indices_to_solved_sections():
         """
-            Performs a modular inverse of each rune in each unsolved section (except the zero-th rune).
+            Uses the runes as indices to solved sections - either by GP value or as direct incides.
         """
-            
+        
+        # Gather entire LP1
+        entire_lp1 = [ RuneUtils.rune_at(0) ]
+        for section in LiberPrimus.get_all_sections():
+            pt = ProcessedText(section=section)
+            for transformer in section.transformers:
+                transformer.transform(pt)
+            if pt.is_unsolved():
+                break
+            entire_lp1 += pt.get_runes()
+
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
 
-            # Perform modular inverse
+            # Use as direct indices
             pt = ProcessedText(section=section)
-            ModInvTransformer(use_shift_counter=True).transform(pt)
-            pt.check_measurements()
+            pt.set_runes([ entire_lp1[RuneUtils.get_rune_index(rune)] for rune in pt.get_runes() ])
+            pt.check_measurements(mode='Direct')
+
+            # Use GP-values
+            pt.revert()
+            pt.set_runes([ entire_lp1[RuneUtils.gp_at(RuneUtils.get_rune_index(rune)) - 1] for rune in pt.get_runes() ])
+            pt.check_measurements(mode='GpValues')
 
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
