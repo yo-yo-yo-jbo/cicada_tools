@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from research_utils import ResearchUtils
 from core import *
 from secrets import *
