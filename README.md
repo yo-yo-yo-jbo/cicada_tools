@@ -1,4 +1,4 @@
-# Cicada utils
+# Cicada Tools
 Cicada 3301 Python utilities for decryption and research purposes.
 ![Screenshot](screenshot.png)
 
