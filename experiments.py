@@ -317,7 +317,7 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def autokey_and_vigenere_bruteforce(min_key_len=6):
+    def autokey_and_vigenere_dictionary_attack(min_key_len=6):
         """
             Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
             Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
@@ -1428,3 +1428,46 @@ class Experiments(object):
                     KeystreamTransformer(keystream=iter(keystream)).transform(pt)
                     pt.check_measurements(func_index=func_index, keystream_name=keystream_name)
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def autokey_and_vigenere_bruteforce(max_key_len=10):
+        """
+            Attempts Autokey or Vigenere bruteforcing for all runes.
+        """
+
+        # Iterate all key lengths
+        alphabet = [ RuneUtils.rune_at(i) for i in range(RuneUtils.size()) ]
+        for key_len in range(1, max_key_len + 1):
+
+            # Iterate all sections
+            for section in ResearchUtils.get_unsolved_sections():
+
+                # Iterate all keys
+                total = len(alphabet) ** key_len
+                with tqdm(total=total, desc=f'Section "{section.name}" (keylen={key_len})') as pbar:
+                    for option in itertools.product(alphabet, repeat=key_len):
+
+                        # Get key from option
+                        key = ''.join(option)
+                        
+                        # Attempt Vigenere
+                        pt = ProcessedText(section=section)
+                        VigenereTransformer(key=key).transform(pt)
+                        pt.check_measurements(mode='Vigenere', key=key)
+
+                        # Iterate all Autokey modes
+                        for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
+
+                            # Either try or do not try GP-mode
+                            for use_gp in (False, True):
+
+                                # Revert previous runs
+                                pt.revert()
+
+                                # Apply Autokey
+                                AutokeyTransformer(key=key, mode=mode, use_gp=use_gp).transform(pt)
+                                pt.check_measurements(mode=f'Autokey {mode}', key=key)
+
+                        # Update progress bar
+                        pbar.update(1)
