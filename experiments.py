@@ -796,33 +796,49 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
-    def indices_to_solved_sections():
+    def use_solved_sections():
         """
-            Uses the runes as indices to solved sections - either by GP value or as direct incides.
+            Uses the runes as indices to solved sections - either by GP value or as direct incides. Also attempts to use decrypted pages as a keystream.
         """
         
         # Gather entire LP1
-        entire_lp1 = [ RuneUtils.rune_at(0) ]
+        lp1_encrypted_runes = []
+        lp1_decrypted_runes = []
         for section in LiberPrimus.get_all_sections():
             pt = ProcessedText(section=section)
+            lp1_encrypted_runes += pt.get_runes()
             for transformer in section.transformers:
                 transformer.transform(pt)
             if pt.is_unsolved():
+                lp1_encrypted_runes = lp1_encrypted_runes[:len(lp1_decrypted_runes)]
                 break
-            entire_lp1 += pt.get_runes()
+            lp1_decrypted_runes += pt.get_runes()
 
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
 
-            # Use as direct indices
+            # Use encrypted runes as a keystream
             pt = ProcessedText(section=section)
-            pt.set_runes([ entire_lp1[RuneUtils.get_rune_index(rune)] for rune in pt.get_runes() ])
-            pt.check_measurements(mode='Direct')
+            KeystreamTransformer(keystream=iter(map(RuneUtils.get_rune_index, lp1_encrypted_runes))).transform(pt)
+            pt.check_measurements(mode='EncryptedKeystream')
+
+            # Use decrypted runes as a keystream
+            pt.revert()
+            KeystreamTransformer(keystream=iter(map(RuneUtils.get_rune_index, lp1_decrypted_runes))).transform(pt)
+            pt.check_measurements(mode='DecryptedKeystream')
+
+            # Use incides as a 1-based system
+            lp1_decrypted_runes = [ RuneUtils.rune_at(0) ] + lp1_decrypted_runes
+
+            # Use as direct indices
+            pt.revert()
+            pt.set_runes([ lp1_decrypted_runes[RuneUtils.get_rune_index(rune)] for rune in pt.get_runes() ])
+            pt.check_measurements(mode='DirectIndices')
 
             # Use GP-values
             pt.revert()
-            pt.set_runes([ entire_lp1[RuneUtils.gp_at(RuneUtils.get_rune_index(rune)) - 1] for rune in pt.get_runes() ])
-            pt.check_measurements(mode='GpValues')
+            pt.set_runes([ lp1_decrypted_runes[RuneUtils.gp_at(RuneUtils.get_rune_index(rune)) - 1] for rune in pt.get_runes() ])
+            pt.check_measurements(mode='GpValuesIndices')
 
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
