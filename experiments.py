@@ -1471,3 +1471,23 @@ class Experiments(object):
 
                         # Update progress bar
                         pbar.update(1)
+
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def rune_differences():
+        """
+            Examine the different between each two runes.
+        """
+
+        # Iterate all sections
+        for section in tqdm(ResearchUtils.get_unsolved_sections(), desc='Iterating sections'):
+
+            # Iterate all runes in section
+            pt = ProcessedText(section=section)
+            runes = pt.get_runes()
+            new_runes = [ runes[0] ]
+            new_runes += [ RuneUtils.rune_at((RuneUtils.get_rune_index(runes[i+1]) - RuneUtils.get_rune_index(runes[i])) % RuneUtils.size()) for i in range(len(runes) - 1) ]
+            pt.set_runes(new_runes)
+            pt.check_measurements()
+
