@@ -1477,7 +1477,7 @@ class Experiments(object):
     @staticmethod
     def rune_differences():
         """
-            Examine the different between each two runes.
+            Examine the difference between each two runes.
         """
 
         # Iterate all sections
