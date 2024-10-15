@@ -317,9 +317,43 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=3))
     @measurement(IocMeasurement(threshold=1.4))
     @staticmethod
+    def vigenere_with_variable_grouping_size_dictionary_attack(min_key_len=6, max_grouping_size=10):
+        """
+            Attempts a Vigenere dictionary attack on variable grouping sizes.
+            Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
+        """
+
+        # Build potential keys
+        keys = ResearchUtils.get_rune_wordlist()
+        rev_keys = [ k[::-1] for k in keys ]
+        keys += [ k.replace(k[0], RuneUtils.rune_at(0)) for k in keys ]
+        keys += rev_keys
+        keys = [ k for k in keys if len(k) > min_key_len ]
+        keys = set(keys)
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+
+            # Iterate all keys
+            for key in tqdm(keys, desc=f'Section {section.name}'):
+
+                # Process text
+                pt = ProcessedText(section=section)
+
+                # Iterate all grouping sizes
+                for grouping_size in range(1, max_grouping_size + 1):
+
+                    # Apply Vigenere
+                    pt.revert()
+                    VigenereTransformer(key=key, grouping_size=grouping_size).transform(pt)
+                    pt.check_measurements(key=key, grouping_size=grouping_size)
+
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
     def autokey_and_vigenere_dictionary_attack(min_key_len=6):
         """
-            Attempts Autokey or Vigenere bruteforcing with or without reversing the text of each section.
+            Attempts Autokey or Vigenere dictionary attack with or without reversing the text of each section.
             Uses keys derived from all decrypted sections, with and without replacing all occurrences of first character with "F".
             Also tries reversing all keys.
             Uses all supported modes of Autokey: plaintext, cipehrtext or alternating (starting from either plaintext or ciphertext, or using the Mobius function).

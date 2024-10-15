@@ -364,7 +364,7 @@ class VigenereTransformer(TransformerBase):
         Vigenere cipher decryption.
     """
 
-    def __init__(self, key, interrupt_indices=set()):
+    def __init__(self, key, interrupt_indices=set(), grouping_size=1):
         """
             Creates an instance.
         """
@@ -373,6 +373,10 @@ class VigenereTransformer(TransformerBase):
         assert len(key) > 0, Exception('Empty key')
         self._key_indices = [ RuneUtils.get_rune_index(rune) for rune in key ]
         assert len([ i for i in self._key_indices if i < 0 ]) == 0, Exception('Invalid key')
+
+        # Save the grouping size
+        assert grouping_size >= 1, Exception(f'Invalid grouping size {grouping_size}')
+        self._grouping_size = grouping_size
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -386,6 +390,8 @@ class VigenereTransformer(TransformerBase):
         result = []
         key_index = 0
         rune_index = -1
+        curr_group_size = 1
+        decrypted_in_group = 0
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
@@ -393,6 +399,12 @@ class VigenereTransformer(TransformerBase):
             else:
                 new_index = (RuneUtils.get_rune_index(rune) - self._key_indices[key_index]) % RuneUtils.size()
                 key_index = (key_index + 1) % len(self._key_indices)
+                decrypted_in_group += 1
+                if decrypted_in_group == curr_group_size:
+                    decrypted_in_group = 0
+                    curr_group_size += 1
+                    if curr_group_size > self._grouping_size:
+                        curr_group_size = 1
             result.append(RuneUtils.rune_at(new_index))
 
         # Set the result
