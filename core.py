@@ -293,7 +293,7 @@ class ProcessedText(object):
         """
 
         # Return the GP sums of sentences
-        result = [ RuneUtils.runes_to_gp_sum(sentence) for sentence in self.split_sentences() ]
+        result = [ RuneUtils.runes_to_gp_sum(''.join(sentence)) for sentence in self.split_sentences() ]
         return [ val for val in result if val > 0 ]
 
     def get_first_non_wordlist_word_index(self, wordlist):
