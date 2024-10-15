@@ -1513,6 +1513,7 @@ class Experiments(object):
     def all_word_starts_as_keystream():
         """
             Uses solved section words as keystream, starting from each word.
+            Also attempts to use their GP-values.
         """
 
         # Iterate all solved sections
@@ -1545,15 +1546,20 @@ class Experiments(object):
             # Use all keystreams
             for keystream in tqdm(keystreams, desc=f'Section "{section.name}"'):
 
-                # Apply keystream as-is
+                # Process the section
                 pt = ProcessedText(section=section)
-                KeystreamTransformer(keystream=iter(list(map(RuneUtils.get_rune_index, keystream)))).transform(pt)
-                pt.check_measurements(keystream=keystream)
 
-                # Try to modify each rune to F
-                for rune in [ RuneUtils.rune_at(rune_index) for rune_index in range(1, RuneUtils.size()) ]:
+                # Try to modify each rune to F (including effectively not changing anything)
+                for rune in [ RuneUtils.rune_at(rune_index) for rune_index in range(RuneUtils.size()) ]:
                     modified_keystream = keystream.replace(rune, RuneUtils.rune_at(0))
+                    
+                    # Attempt as-is
                     pt.revert()
                     KeystreamTransformer(keystream=iter(list(map(RuneUtils.get_rune_index, modified_keystream)))).transform(pt)
-                    pt.check_measurements(keystream=modified_keystream)
+                    pt.check_measurements(keystream=modified_keystream, mode='AsIs')
+
+                    # Attempt to use with GP-values
+                    pt.revert()
+                    KeystreamTransformer(keystream=iter(list(map(RuneUtils.gp_at, map(RuneUtils.get_rune_index, modified_keystream))))).transform(pt)
+                    pt.check_measurements(keystream=modified_keystream, mode='GpValues')
 
