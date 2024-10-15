@@ -1507,3 +1507,53 @@ class Experiments(object):
             pt.set_runes(new_runes)
             pt.check_measurements()
 
+    @measurement(PrefixWordsMeasurement(threshold=2))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def all_word_starts_as_keystream():
+        """
+            Uses solved section words as keystream, starting from each word.
+        """
+
+        # Iterate all solved sections
+        keystreams = []
+        for section in tqdm(LiberPrimus.get_all_sections(), desc='Building streams from sections'):
+
+            # Process text and skip unsolved sections
+            pt = ProcessedText(section=section)
+            for transformer in section.transformers:
+                transformer.transform(pt)
+            if pt.is_unsolved():
+                continue
+
+            # Use decoded text as keystreams
+            keystreams.append(pt.get_rune_text())
+            while True:
+                chunks = keystreams[-1].split(' ')
+                if len(chunks) < 2:
+                    keystreams.append(chunks[0])
+                    break
+                keystreams.append(' '.join(chunks[1:]))
+
+        # Turn all keystreams into runes
+        keystreams = [ ''.join(ProcessedText(keystream).get_runes()) for keystream in keystreams ]
+        keystreams = [ keystream for keystream in keystreams if len(keystream) > 0 ]
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+            
+            # Use all keystreams
+            for keystream in tqdm(keystreams, desc=f'Section "{section.name}"'):
+
+                # Apply keystream as-is
+                pt = ProcessedText(section=section)
+                KeystreamTransformer(keystream=iter(list(map(RuneUtils.get_rune_index, keystream)))).transform(pt)
+                pt.check_measurements(keystream=keystream)
+
+                # Try to modify each rune to F
+                for rune in [ RuneUtils.rune_at(rune_index) for rune_index in range(1, RuneUtils.size()) ]:
+                    modified_keystream = keystream.replace(rune, RuneUtils.rune_at(0))
+                    pt.revert()
+                    KeystreamTransformer(keystream=iter(list(map(RuneUtils.get_rune_index, modified_keystream)))).transform(pt)
+                    pt.check_measurements(keystream=modified_keystream)
+
