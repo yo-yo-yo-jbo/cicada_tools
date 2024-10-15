@@ -253,9 +253,9 @@ class ProcessedText(object):
         """
 
         # Split
-        sentences = self.get_rune_text().split('.')
+        sentences = [ [ word for word in ProcessedText(sentence).get_rune_words() if len(word) > 0 ] for sentence in self.get_rune_text().split('.') ]
         if not include_empty:
-            sentences = [ sentence for sentence in sentences if len(sentence.strip()) > 0 ]
+            sentences = [ sentence for sentence in sentences if len(sentence) > 0 ]
         return sentences
 
     def split_lines(self, include_empty=True):
