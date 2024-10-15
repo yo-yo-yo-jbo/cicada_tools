@@ -398,9 +398,9 @@ class VigenereTransformer(TransformerBase):
                 new_index = RuneUtils.get_rune_index(rune)
             else:
                 new_index = (RuneUtils.get_rune_index(rune) - self._key_indices[key_index]) % RuneUtils.size()
-                key_index = (key_index + 1) % len(self._key_indices)
                 decrypted_in_group += 1
                 if decrypted_in_group == curr_group_size:
+                    key_index = (key_index + 1) % len(self._key_indices)
                     decrypted_in_group = 0
                     curr_group_size += 1
                     if curr_group_size > self._grouping_size:
