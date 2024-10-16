@@ -1597,3 +1597,43 @@ class Experiments(object):
                     KeystreamTransformer(keystream=iter(list(map(RuneUtils.gp_at, map(RuneUtils.get_rune_index, modified_keystream))))).transform(pt)
                     pt.check_measurements(keystream=modified_keystream, mode='GpValues')
 
+    @measurement(PrefixWordsMeasurement(threshold=3))
+    @measurement(IocMeasurement(threshold=1.4))
+    @staticmethod
+    def mixed_alphabet_autokey(min_key_len=6, min_alphabet_prefix_len=4):
+        """
+            Attempts Autokey with mixed alphabet derived by dictionary words.
+        """
+
+        # Get words as mixed alphabet prefix options
+        alphabet_prefix_options = [ ''.join(set(word)) for word in ResearchUtils.get_rune_wordlist() if len(word) >= min_alphabet_prefix_len ]
+
+        # Build potential keys
+        keys = ResearchUtils.get_rune_wordlist()
+        rev_keys = [ k[::-1] for k in keys ]
+        keys += [ k.replace(k[0], RuneUtils.rune_at(0)) for k in keys ]
+        keys += rev_keys
+        keys = [ k for k in keys if len(k) > min_key_len ]
+        keys += [ RuneUtils.rune_at(i) for i in range(RuneUtils.size()) ]
+        keys = set(keys)
+
+        # Iterate all sections
+        for section in ResearchUtils.get_unsolved_sections():
+            
+            # Use all keys
+            for key in tqdm(keys, desc=f'Section "{section.name}"'):
+
+                # Process the section
+                pt = ProcessedText(section=section)
+
+                # Iterate all Autokey modes
+                for mode in (AutokeyMode.PLAINTEXT, AutokeyMode.CIPHERTEXT, AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT, AutokeyMode.ALT_MOBIUS_START_PLAINTEXT, AutokeyMode.ALT_MOBIUS_START_CIPHERTEXT):
+
+                    # Iterate all mixed alphabets
+                    for alphabet_prefix_option in alphabet_prefix_options:
+
+                        # Apply Autokey
+                        pt.revert()
+                        AutokeyTransformer(key=key, mode=mode, alphabet_prefix=alphabet_prefix_option).transform(pt)
+                        pt.check_measurements(mode=mode, key=key, alphabet_prefix=alphabet_prefix_option)
+
