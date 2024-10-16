@@ -1163,11 +1163,15 @@ class Experiments(object):
 
         # Define constants
         consts = {
-            'Pi'    : sympy.pi,
-            'TwoPi' : 2 * sympy.pi,
-            'e'     : sympy.exp(1),
-            'Phi'   : sympy.S.GoldenRatio,
-            'Sqrt2' : sympy.sqrt(2)
+            'Pi'        : sympy.pi,
+            'TwoPi'     : 2 * sympy.pi,
+            'e'         : sympy.exp(1),
+            'Phi'       : sympy.S.GoldenRatio,
+            'Sqrt2'     : sympy.sqrt(2),
+            '1/3301'    : 1/3301,
+            '1/1033'    : 1/1033,
+            '1/761'     : 1/761,
+            '1/167'     : 1/167,
         }
 
         # Add the constants as keystreams
