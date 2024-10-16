@@ -40,17 +40,20 @@ That class keeps a mutation of all runes while maintaining all punctuation and n
 ### transformers.py
 Contains `Transformer` classes, which transform `ProcessedText` instances runes by calling `transform` on them.
 Creating a new transformer means inheriting from `TransformerBase`, which means you must implement a method called `transform` that transforms a processed text.  
+Since all transformers are supposed to support mixed alphabet, you're encouraged to include a `alphabet_prefix` as a parameter to your constructor.  
+The working alphabet is always available as a string in `self._alphabet`, and will always contain all runes and only runes.
 Normally you'd call `processed_text.get_runes()` to get the runes and do something to them, and then call `processed_text.set_runes()` to set them.  
 Here is an example of a Transformer that substructs the stream of natural numbers from runes:
 
 ```python3
 class NaturalsKeystream(TransformerBase):
-    def __init__(self, start_val=1):
+    def __init__(self, start_val=1, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save members
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._start_val = start_val
 
     def transform(self, processed_text):
@@ -60,7 +63,7 @@ class NaturalsKeystream(TransformerBase):
 
         # Transforms runes
         runes = processed_text.get_runes()
-        result = [ RuneUtils.rune_at((RuneUtils.get_rune_index(runes[i]) - (self._start_val + i)) % RuneUtils.size()) for i in range(len(runes)) ]
+        result = [ self._alphabet[(self._alphabet.index(runes[i]) - (self._start_val + i)) % len(self._alphabet)] for i in range(len(runes)) ]
         processed_text.set_runes(result)
 ```
 
