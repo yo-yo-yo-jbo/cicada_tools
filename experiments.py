@@ -550,12 +550,21 @@ class Experiments(object):
             Spiral pattern was concluded from page 15, walking right and going clockwise.
         """
 
+        # Build the Tabula Recta as a matrix
+        recta = []
+        for row_num in range(RuneUtils.size()):
+            recta.append([ (item + row_num) % RuneUtils.size() for item in range(RuneUtils.size()) ])
+        recta = sympy.Matrix(recta)
+
+        # Build the list of squares
+        squares = SQUARES + [ recta ]
+
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
 
             # Iterate all squares
             square_index = -1
-            for square in tqdm(SQUARES, desc=f'Section "{section.name}"'):
+            for square in tqdm(squares, desc=f'Section "{section.name}"'):
                 
                 # Try adding or substructing
                 square_index += 1
