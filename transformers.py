@@ -195,18 +195,29 @@ class TransformerBase(ABC):
         """
         pass
 
+    def __init__(self, alphabet_prefix=''):
+        """
+            Creates an instance.
+        """
+
+        # Saves the alphabet
+        assert len(alphabet_prefix) == len([ c for c in alphabet_prefix if RuneUtils.is_rune(c) ]), Exception(f'Invalid alphabet prefix: {alphabet_prefix}')
+        assert len(alphabet_prefix) == len(set(alphabet_prefix)), Exception(f'Repeating elements in alphabet prefix are forbidden: {alphabet_prefix}')
+        self._alphabet = alphabet_prefix + ''.join([ RuneUtils.rune_at(i) for i in range(RuneUtils.size()) if RuneUtils.rune_at(i) not in alphabet_prefix ])
+
 class ShiftTransformer(TransformerBase):
     """
         Shift (Caesar) transformer.
     """
 
-    def __init__(self, shift):
+    def __init__(self, shift, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Saves the shift value
-        self._shift = shift % RuneUtils.size() 
+        super().__init__(alphabet_prefix=alphabet_prefix)
+        self._shift = shift % len(self._alphabet)
 
     def transform(self, processed_text):
         """
@@ -214,27 +225,28 @@ class ShiftTransformer(TransformerBase):
         """
 
         # Performs the shift transformation
-        processed_text.set_runes([ RuneUtils.rune_at(RuneUtils.get_rune_index(rune) + self._shift) for rune in processed_text.get_runes() ])
+        processed_text.set_runes([ self._alphabet[(self._alphabet.index(rune) + self._shift) % len(self._alphabet)] for rune in processed_text.get_runes() ])
 
 class AtbashTransformer(TransformerBase):
     """
         Atbash transformer.
     """
 
-    def transform(self, processed_text):
+    def transform(self, processed_text, alphabet_prefix=''):
         """
             Transforms runes.
         """
 
         # Performs Atbash transformation
-        processed_text.set_runes([ RuneUtils.rune_at(RuneUtils.size() - RuneUtils.get_rune_index(rune) - 1) for rune in processed_text.get_runes() ])
+        super().__init__(alphabet_prefix=alphabet_prefix)
+        processed_text.set_runes([ self._alphabet[len(self._alphabet) - self._alphabet.index(rune) - 1] for rune in processed_text.get_runes() ])
 
 class AutokeyTransformer(TransformerBase):
     """
         Autokey cipher decryption.
     """
 
-    def __init__(self, key, mode, use_gp=False, interrupt_indices=set()):
+    def __init__(self, key, mode, use_gp=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
             The key should be in runes.
@@ -243,8 +255,9 @@ class AutokeyTransformer(TransformerBase):
         """
 
         # Save the key indices
+        super().__init__(alphabet_prefix=alphabet_prefix)
         assert len(key) > 0, Exception('Empty key')
-        self._key_indices = [ RuneUtils.get_rune_index(rune) for rune in key ]
+        self._key_indices = [ self._alphabet.index(rune) for rune in key ]
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
@@ -279,40 +292,41 @@ class AutokeyTransformer(TransformerBase):
 
             # Treat mobius value of 0 just like an interrupt index
             if rune_index in self._interrupt_indices or mob_value == 0:
-                new_index = RuneUtils.get_rune_index(rune)
+                new_index = self._alphabet.index(rune)
             else:
-                new_index = (RuneUtils.get_rune_index(rune) - running_key_indices[key_index]) % RuneUtils.size()
+                new_index = (self._alphabet.index(rune) - running_key_indices[key_index]) % len(self._alphabet)
                 key_index += 1
 
                 # Extend the keystream from either plaintext or ciphertext
                 if extend_to_plaintext:
                     running_key_indices.append(new_index)
                 else:
-                    running_key_indices.append(RuneUtils.get_rune_index(ciphertext[ciphertext_extension_index]))
+                    running_key_indices.append(self._alphabet.index(ciphertext[ciphertext_extension_index]))
                     ciphertext_extension_index += 1
 
                 # Using GP mode we extend the running keystream with the GP value of the lastly added value
                 if self._use_gp:
-                    running_key_indices[-1] = GP_PRIMES[running_key_indices[-1]] % RuneUtils.size()
+                    running_key_indices[-1] = GP_PRIMES[running_key_indices[-1]] % len(self._alphabet)
 
                 # Update whether to extend the keystream to plaintext if needed
                 if self._mode in (AutokeyMode.ALT_START_PLAINTEXT, AutokeyMode.ALT_START_CIPHERTEXT):
                     extend_to_plaintext = not extend_to_plaintext
 
             # Add the new rune
-            result.append(RuneUtils.rune_at(new_index))
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
 
 class AutokeyMobiusTransformer(TransformerBase):
 
-    def __init__(self, keys, mode, interrupt_indices=set()):
+    def __init__(self, keys, mode, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the keys
+        super().__init__(alphabet_prefix=alphabet_prefix)
         assert len(keys) == 3, Exception('Expecting three keys')
         self._keys = keys[:]
 
@@ -364,14 +378,15 @@ class VigenereTransformer(TransformerBase):
         Vigenere cipher decryption.
     """
 
-    def __init__(self, key, interrupt_indices=set(), grouping_size=1):
+    def __init__(self, key, interrupt_indices=set(), grouping_size=1, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the key indices
+        super().__init__(alphabet_prefix=alphabet_prefix)
         assert len(key) > 0, Exception('Empty key')
-        self._key_indices = [ RuneUtils.get_rune_index(rune) for rune in key ]
+        self._key_indices = [ self._alphabet.index(rune) for rune in key ]
         assert len([ i for i in self._key_indices if i < 0 ]) == 0, Exception('Invalid key')
 
         # Save the grouping size
@@ -380,6 +395,9 @@ class VigenereTransformer(TransformerBase):
 
         # Save the interrupters
         self._interrupt_indices = interrupt_indices
+
+        # Build the alphabet
+        assert len([ c for c in alphabet_prefix if c in self._alphabet ]) == len(alphabet_prefix), Exception(f'Invalid alphabet: {alphabet_prefix}')
 
     def transform(self, processed_text):
         """
@@ -395,9 +413,9 @@ class VigenereTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RuneUtils.get_rune_index(rune)
+                new_index = self._alphabet.index(rune)
             else:
-                new_index = (RuneUtils.get_rune_index(rune) - self._key_indices[key_index]) % RuneUtils.size()
+                new_index = (self._alphabet.index(rune) - self._key_indices[key_index]) % len(self._alphabet)
                 decrypted_in_group += 1
                 if decrypted_in_group == curr_group_size:
                     key_index = (key_index + 1) % len(self._key_indices)
@@ -405,7 +423,7 @@ class VigenereTransformer(TransformerBase):
                     curr_group_size += 1
                     if curr_group_size > self._grouping_size:
                         curr_group_size = 1
-            result.append(RuneUtils.rune_at(new_index))
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
@@ -417,12 +435,13 @@ class TotientPrimeTransformer(TransformerBase):
         Optiomally turns primes into emirps (Decimal-reversed primes).
     """
 
-    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1, emirp=False):
+    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1, emirp=False, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the action and the number of totient calls
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._add = add
         self._tot_calls = tot_calls
         self._emirp = emirp
@@ -442,16 +461,16 @@ class TotientPrimeTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RuneUtils.get_rune_index(rune)
+                new_index = self._alphabet.index(rune)
             else:
                 val = int(str(curr_prime)[::-1]) if self._emirp else curr_prime
                 for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1
-                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
+                new_index = (self._alphabet.index(rune) + val) % len(self._alphabet)
                 curr_prime = MathUtils.find_next_prime(curr_prime)
-            result.append(RuneUtils.rune_at(new_index))
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
@@ -462,12 +481,13 @@ class TotientFibTransformer(TransformerBase):
         You can also call the totient function recusrively, if needed, or not call it at all.
     """
 
-    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1):
+    def __init__(self, add=False, interrupt_indices=set(), tot_calls=1, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the action and the number of totient calls
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._add = add
         self._tot_calls = tot_calls
 
@@ -486,16 +506,16 @@ class TotientFibTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RuneUtils.get_rune_index(rune)
+                new_index = self._alphabet.index(rune)
             else:
                 val = fib_a
                 for i in range(self._tot_calls):
                     val = MathUtils.totient(val)
                 if not self._add:
                     val *= -1
-                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
+                new_index = (self._alphabet.index(rune) + val) % len(self._alphabet)
                 fib_a, fib_b = fib_b, fib_a + fib_b
-            result.append(RuneUtils.rune_at(new_index))
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
@@ -505,12 +525,13 @@ class MobiusTotientPrimeTransformer(TransformerBase):
         Substructs or adds to Mobius function of the totient of primes (i.e. p-1), times a either the totient or the prime, from each index.
     """
 
-    def __init__(self, add=False, use_prime_as_base=False, interrupt_indices=set()):
+    def __init__(self, add=False, use_prime_as_base=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the action
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._add = add
         self._use_prime_as_base = use_prime_as_base
 
@@ -529,18 +550,18 @@ class MobiusTotientPrimeTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             rune_index += 1
             if rune_index in self._interrupt_indices:
-                new_index = RuneUtils.get_rune_index(rune)
+                new_index = self._alphabet.index(rune)
             else:
                 tot = MathUtils.totient(curr_prime)
                 if self._use_prime_as_base:
-                    val = (MathUtils.mobius(tot) * curr_prime) % RuneUtils.size()
+                    val = (MathUtils.mobius(tot) * curr_prime) % len(self._alphabet)
                 else:
-                    val = (MathUtils.mobius(tot) * tot) % RuneUtils.size()
+                    val = (MathUtils.mobius(tot) * tot) % len(self._alphabet)
                 if not self._add:
                     val *= -1
-                new_index = (RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()
+                new_index = (self._alphabet.index(rune) + val) % len(self._alphabet)
                 curr_prime = MathUtils.find_next_prime(curr_prime)
-            result.append(RuneUtils.rune_at(new_index))
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
@@ -549,6 +570,14 @@ class ReverseTransformer(TransformerBase):
     """
         Reverses the processed text.
     """
+
+    def __init__(self, alphabet_prefix=''):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__(alphabet_prefix=alphabet_prefix)
 
     def transform(self, processed_text):
         """
@@ -564,12 +593,13 @@ class KeystreamTransformer(TransformerBase):
         Keystream is assumed to be infinite or sufficiently long - but generally will give up and only transform the first N runes if finite.
     """
 
-    def __init__(self, add=False, keystream=None, interrupt_indices=set()):
+    def __init__(self, add=False, keystream=None, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save the keystream and the action
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._keystream = keystream
         self._add = add
 
@@ -594,7 +624,7 @@ class KeystreamTransformer(TransformerBase):
                     val = next(self._keystream)
                     if not self._add:
                         val *= -1
-                    result.append(RuneUtils.rune_at((RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()))
+                    result.append(self._alphabet[(self._alphabet.index(rune) + val) % len(self._alphabet)])
 
             # Set the result
             processed_text.set_runes(result)
@@ -610,26 +640,26 @@ class Page15FuncPrimesTransformer(KeystreamTransformer):
         That function was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=False, interrupt_indices=set()):
+    def __init__(self, add=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=map(lambda x:abs(3301-x), MathUtils.gen_primes()), interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class TotientKeystreamTransformer(KeystreamTransformer):
     """
         Uses the Totient of naturals as a sequence. Can optionally also include tot(0) = 0 (which is normally undefined).
     """
 
-    def __init__(self, add=False, start_at_0=False, interrupt_indices=set()):
+    def __init__(self, add=False, start_at_0=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=MathUtils.gen_totients(start_at_0), interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=MathUtils.gen_totients(start_at_0), interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class FiboPrimesTransformer(KeystreamTransformer):
     """
@@ -637,14 +667,14 @@ class FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=False, emirp=False, interrupt_indices=set()):
+    def __init__(self, add=False, emirp=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
         keystream = map(lambda x:int(str(x)[::-1]), MathUtils.get_fibo_primes()) if emirp else MathUtils.get_fibo_primes()
-        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class Page15FiboPrimesTransformer(KeystreamTransformer):
     """
@@ -652,14 +682,14 @@ class Page15FiboPrimesTransformer(KeystreamTransformer):
         This information was derived from Page 15's square matrix, which works on primes indexed by the Fibonacci sequence.
     """
 
-    def __init__(self, add=False, emirp=False, interrupt_indices=set()):
+    def __init__(self, add=False, emirp=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
         keystream = map(lambda x:abs(3301-int(str(x)[::-1])), MathUtils.get_fibo_primes()) if emirp else map(lambda x:abs(3301-x), MathUtils.get_fibo_primes())
-        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=keystream, interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class SpiralSquareKeystreamTransformer(KeystreamTransformer):
     """
@@ -667,13 +697,13 @@ class SpiralSquareKeystreamTransformer(KeystreamTransformer):
         This pattern was erived from Page 15's square matrix.
     """
 
-    def __init__(self, matrix, add=False, interrupt_indices=set()):
+    def __init__(self, matrix, add=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=MathUtils.matrix_to_spiral_stream(matrix, repeat=True), interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class PrimesIndicesApartTransformer(KeystreamTransformer):
     """
@@ -681,28 +711,29 @@ class PrimesIndicesApartTransformer(KeystreamTransformer):
         That corresponds to primes that are 11-indices apart, and can be turned into a keystream.
     """
 
-    def __init__(self, indices_apart=11, start_value=107, add=False, interrupt_indices=set()):
+    def __init__(self, indices_apart=11, start_value=107, add=False, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Call super
-        super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=indices_apart), interrupt_indices=interrupt_indices)
+        super().__init__(add=add, keystream=MathUtils.gen_primes(first_value=start_value, indices_apart=indices_apart), interrupt_indices=interrupt_indices, alphabet_prefix=alphabet_prefix)
 
 class HillCipherTransformer(TransformerBase):
     """
         Runs Hill Cipher on runes.
     """
 
-    def __init__(self, matrix, padding='ᚠ', inverse=True):
+    def __init__(self, matrix, padding='ᚠ', inverse=True, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Saves the matrix and the padding
-        self._matrix = matrix.inv_mod(RuneUtils.size()) if inverse else matrix
+        super().__init__(alphabet_prefix=alphabet_prefix)
+        self._matrix = matrix.inv_mod(len(self._alphabet)) if inverse else matrix
         assert len(padding) == 1, Exception('Invalid padding length')
-        assert RuneUtils.is_rune(padding[0]), Exception(f'Padding must be a rune: {padding}')
+        assert padding[0] in self._alphabet, Exception(f'Padding must be a rune: {padding}')
         self._padding = padding[0]
 
     def transform(self, processed_text):
@@ -717,11 +748,11 @@ class HillCipherTransformer(TransformerBase):
 
             # Get the chunk and optionally extend with padding
             chunk = (''.join(runes[i:i+self._matrix.rows]) + (self._padding * self._matrix.rows))[:self._matrix.rows]
-            chunk = [ RuneUtils.get_rune_index(rune) for rune in chunk ]
+            chunk = [ self._alphabet.index(rune) for rune in chunk ]
 
             # Work on transposed matrix
             new_chunk = self._matrix * sympy.Matrix(chunk)
-            new_chunk = [ RuneUtils.rune_at(num % RuneUtils.size()) for num in new_chunk ]
+            new_chunk = [ self._alphabet[num % len(self._alphabet)] for num in new_chunk ]
             result.extend(new_chunk)
 
         # Set the result
@@ -732,12 +763,13 @@ class FibonacciKeystreamTransformer(TransformerBase):
         Creates a keystream out of Fibonacci sequence.
     """
 
-    def __init__(self, add=False, start_a=0, start_b=1, interrupt_indices=set()):
+    def __init__(self, add=False, start_a=0, start_b=1, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save members
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._interrupt_indices = interrupt_indices
         self._add = add
 
@@ -765,7 +797,7 @@ class FibonacciKeystreamTransformer(TransformerBase):
                 val = self._sequence[seq_index]
                 if not self._add:
                     val = -val
-                result.append(RuneUtils.rune_at((RuneUtils.get_rune_index(rune) + val) % RuneUtils.size()))
+                result.append(self._alphabet[(self._alphabet.index(rune) + val) % len(self._alphabet)])
 
         # Apply result
         processed_text.set_runes(result)
@@ -776,12 +808,13 @@ class ModInvTransformer(TransformerBase):
         Also attempts to use a shift counter that is increased every time we hit the first rune.
     """
 
-    def __init__(self, use_shift_counter=False):
+    def __init__(self, use_shift_counter=False, alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save members
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._use_shift_counter = use_shift_counter
 
     def transform(self, processed_text):
@@ -795,14 +828,14 @@ class ModInvTransformer(TransformerBase):
         for rune in processed_text.get_runes():
             
             # Performs modular inverse
-            curr_index = RuneUtils.get_rune_index(rune)
+            curr_index = self._alphabet.index(rune)
             if curr_index == 0:
                 new_index = curr_index
                 if self._use_shift_counter:
                     shift_value += 1
             else:
-                new_index = pow(curr_index, -1, RuneUtils.size()) + shift_value
-            result.append(RuneUtils.rune_at(new_index))
+                new_index = pow(curr_index, -1, len(self._alphabet)) + shift_value
+            result.append(self._alphabet[new_index])
 
         # Set the result
         processed_text.set_runes(result)
@@ -812,12 +845,13 @@ class AutokeyGpTransformer(TransformerBase):
         Uses the GP value of the previous plaintext or ciphertext in an Autokey fashion.
     """
 
-    def __init__(self, add=False, use_plaintext=True, primer_value=0, interrupt_indices=set()):
+    def __init__(self, add=False, use_plaintext=True, primer_value=0, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Save members
+        super().__init__(alphabet_prefix=alphabet_prefix)
         self._add = add
         self._use_plaintext = use_plaintext
         self._primer_value = primer_value
@@ -834,10 +868,10 @@ class AutokeyGpTransformer(TransformerBase):
         for rune in processed_text.get_runes():
 
             # Generate the new rune index
-            curr_index = RuneUtils.get_rune_index(rune)
+            curr_index = self._alphabet.index(rune)
             new_index = curr_index + last_value if self._add else curr_index - last_value
-            new_index %= RuneUtils.size()
-            result.append(RuneUtils.rune_at(new_index))
+            new_index %= len(self._alphabet)
+            result.append(self._alphabet[new_index])
 
             # Update last value
             last_value = curr_index if self._use_plaintext else new_index
@@ -851,18 +885,19 @@ class AlbertiTransformer(TransformerBase):
         Runs an Alberti cipher.
     """
 
-    def __init__(self, period, periodic_increment=1, initial_shift=0, interrupt_indices=set()):
+    def __init__(self, period, periodic_increment=1, initial_shift=0, interrupt_indices=set(), alphabet_prefix=''):
         """
             Creates an instance.
         """
 
         # Validations
+        super().__init__(alphabet_prefix=alphabet_prefix)
         assert periodic_increment > 0, Exception('Periodic increment must be a positive integer')
-        assert periodic_increment < RuneUtils.size(), Exception('Periodic increment too big')
+        assert periodic_increment < len(self._alphabet), Exception('Periodic increment too big')
         assert period > 0, Exception('Period must be strictly positive')
 
         # Save members
-        self._mobile_disk = list(range(RuneUtils.size()))
+        self._mobile_disk = list(range(len(self._alphabet)))
         self._interrupt_indices = interrupt_indices
         self._period = period
         self._periodic_increment = periodic_increment
@@ -887,7 +922,7 @@ class AlbertiTransformer(TransformerBase):
             if rune_index in self._interrupt_indices:
                 result.append(rune)
                 continue
-            result.append(RuneUtils.rune_at(mobile_disk.index(RuneUtils.get_rune_index(rune))))
+            result.append(self._alphabet[mobile_disk.index(self._alphabet.index(rune))])
             mobile_counter += 1
             if mobile_counter == self._period:
                 mobile_counter = 0
@@ -900,6 +935,14 @@ class UnsolvedTransformer(TransformerBase):
     """
         Marks the processed text as unsolved.
     """
+
+    def __init__(self):
+        """
+            Creates an instance.
+        """
+
+        # Call super
+        super().__init__()
 
     def transform(self, processed_text):
         """
