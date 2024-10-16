@@ -1110,10 +1110,14 @@ class Experiments(object):
     @measurement(PrefixWordsMeasurement(threshold=4))
     @measurement(IocMeasurement(threshold=1.6)) 
     @staticmethod
-    def alberti_cipher_bruteforce(max_period=26):
+    def alberti_cipher_bruteforce(max_period=26, min_alphabet_prefix_len=4):
         """
             Brute forces Alberti cipher configurations.
         """
+
+        # Get words as mixed alphabet prefix options but also include an empty alphabet prefix
+        alphabet_prefix_options = [ ''.join(set(word)) for word in ResearchUtils.get_rune_wordlist() if len(word) >= min_alphabet_prefix_len ]
+        alphabet_prefix_options = [ '' ] + alphabet_prefix_options
 
         # Iterate all sections
         for section in ResearchUtils.get_unsolved_sections():
@@ -1124,10 +1128,14 @@ class Experiments(object):
                     for periodic_increment in range(1, RuneUtils.size()):
                         for initial_shift in range(RuneUtils.size()):
 
-                            # Run cipher
+                            # Iterate mixed alphabet
                             pt = ProcessedText(section=section)
-                            AlbertiTransformer(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift).transform(pt)
-                            pt.check_measurements(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift)
+                            for alphabet_prefix_option in alphabet_prefix_options:
+
+                                # Run cipher
+                                pt.revert()
+                                AlbertiTransformer(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift, alphabet_prefix=alphabet_prefix_option).transform(pt)
+                                pt.check_measurements(period=period, periodic_increment=periodic_increment, initial_shift=initial_shift, alphabet_prefix=alphabet_prefix_option)
 
                             # Update progress bar
                             pbar.update(1)
